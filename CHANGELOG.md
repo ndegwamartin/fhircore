@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Client count display in drawer
 - Login and Keycloak authentication for FHIR APIs
 - Added user logout functionality
+- Added risk assessment and relevant flaf to registration form, resources and UI
 
 ### Fixed
 
