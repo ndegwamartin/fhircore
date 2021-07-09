@@ -22,6 +22,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Observation
+import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
 import org.smartregister.fhircore.FhirApplication
 import org.smartregister.fhircore.activity.QuestionnaireActivity

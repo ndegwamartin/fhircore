@@ -32,6 +32,11 @@ object QuestionnaireUtils {
     return CodeableConcept().apply {
       this.text = q.text
       this.coding = q.code
+
+      this.addCoding().apply {
+        this.code = q.linkId
+        this.system = q.definition
+      }
     }
   }
 
@@ -41,10 +46,9 @@ object QuestionnaireUtils {
     subject: Patient
   ): Observation {
     val obs = Observation()
-    obs.id = UUID.randomUUID().toString().toLowerCase()
+    obs.id = UUID.randomUUID().toString()
     obs.effective = DateTimeType.now()
     obs.code = asCodeableConcept(q)
-    // obs.hasMember = Reference().apply { this.reference = "Observation/" + parent.id}
     obs.status = Observation.ObservationStatus.FINAL
     obs.value = if (qr.hasAnswer()) qr.answer[0].value else null
     obs.subject = Reference().apply { this.reference = "Patient/" + subject.id }
@@ -58,7 +62,7 @@ object QuestionnaireUtils {
     questionnaire: Questionnaire,
     patient: Patient
   ): MutableList<Observation> {
-    var observations = mutableListOf<Observation>()
+    val observations = mutableListOf<Observation>()
 
     for (i in 0 until questionnaire.item.size) {
       // questionnaire and questionnaireResponse mapping go parallel
@@ -117,7 +121,7 @@ object QuestionnaireUtils {
     }
 
     for (i in questionnaireItem.item) {
-      var qit = itemWithDefinition(i, definition)
+      val qit = itemWithDefinition(i, definition)
       if (qit != null) {
         return qit
       }
@@ -135,9 +139,33 @@ object QuestionnaireUtils {
     }
 
     for (i in questionnaireItem.item) {
-      var qit = itemWithExtension(i, extension)
+      val qit = itemWithExtension(i, extension)
       if (qit != null) {
         return qit
+      }
+    }
+
+    return null
+  }
+
+  private fun getItem(
+    obs: Observation,
+    item: Questionnaire.QuestionnaireItemComponent?
+  ): Questionnaire.QuestionnaireItemComponent? {
+    if (item != null) {
+      val codes = item.code.map { it.code }.toMutableList()
+      codes.add(item.linkId)
+      codes.add(item.text)
+
+      if (obs.code.coding.any { codes.contains(it.code) }) {
+        return item
+      }
+
+      item.item.forEach {
+        val res = getItem(obs, it)
+        if (res != null) {
+          return res
+        }
       }
     }
 
@@ -157,13 +185,18 @@ object QuestionnaireUtils {
     var riskScore = 0
     val risk = RiskAssessment()
 
-    observations.forEach {
-      val isRiskObs = it.extension.singleOrNull { ro -> ro.url.contains("RiskAssessment") } != null
+    observations.forEach { obs ->
+      var qObs = questionnaire.item.map { getItem(obs, it) }.find { it != null }
 
-      if (it.hasValue() && isRiskObs) {
-        riskScore++
+      if (qObs != null) {
+        val isRiskObs =
+          qObs!!.extension.singleOrNull { ro -> ro.url.contains("RiskAssessment") } != null
 
-        risk.addBasis(Reference().apply { this.reference = "Observation/" + it.id })
+        if (obs.hasValue() && isRiskObs) {
+          riskScore++
+
+          risk.addBasis(Reference().apply { this.reference = "Observation/" + obs.id })
+        }
       }
     }
 
@@ -173,8 +206,7 @@ object QuestionnaireUtils {
     risk.occurrence = DateTimeType.now()
     risk.addPrediction().apply {
       this.relativeRisk = riskScore.toBigDecimal()
-      this.outcome.text = qItem.text
-      this.outcome.coding = qItem.code
+      this.outcome = asCodeableConcept(qItem)
     }
 
     return risk
