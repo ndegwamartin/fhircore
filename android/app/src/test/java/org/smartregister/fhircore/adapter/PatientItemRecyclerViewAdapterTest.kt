@@ -121,7 +121,7 @@ class PatientItemRecyclerViewAdapterTest : RobolectricTest() {
         html = "asd",
         phone = "011",
         logicalId = "1234",
-        "low risk"
+        "high risk"
       )
     Assert.assertTrue(diffCallback.areContentsTheSame(item, identical))
     Assert.assertTrue(diffCallback.areItemsTheSame(item, identical))

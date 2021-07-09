@@ -39,6 +39,7 @@ import org.smartregister.fhircore.R
 import org.smartregister.fhircore.fragment.PatientDetailFragment
 import org.smartregister.fhircore.util.QuestionnaireUtils
 import org.smartregister.fhircore.viewmodel.QuestionnaireViewModel
+import java.util.UUID
 
 class QuestionnaireActivity : MultiLanguageBaseActivity() {
   private val viewModel: QuestionnaireViewModel by viewModels()
@@ -91,15 +92,24 @@ class QuestionnaireActivity : MultiLanguageBaseActivity() {
     viewModel.saveObservations(observations)
 
     // only one risk assessment per questionnaire is supported by fhircore for now
-    val riskAssessment = QuestionnaireUtils.extractRiskAssessment(observations, questionnaire)
+    val riskAssessment =
+      QuestionnaireUtils.extractRiskAssessment(observations, questionnaireResponse, questionnaire)
 
     if (riskAssessment != null) {
       viewModel.saveResource(riskAssessment)
 
-      var flag = QuestionnaireUtils.extractFlagExtension(questionnaire, riskAssessment)
+      var flag =
+        QuestionnaireUtils.extractFlag(questionnaireResponse, questionnaire, riskAssessment)
 
       if (flag != null) {
-        patient.addExtension(flag)
+        viewModel.saveResource(flag)
+
+        // todo remove this when sync is implemented
+        val ext =
+          QuestionnaireUtils.extractFlagExtension(flag, questionnaireResponse, questionnaire)
+        if (ext != null) {
+          patient.addExtension(ext)
+        }
 
         viewModel.saveResource(patient)
       }
