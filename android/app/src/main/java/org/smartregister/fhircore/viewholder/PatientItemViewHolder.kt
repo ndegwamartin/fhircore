@@ -40,7 +40,7 @@ class PatientItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) 
       onItemClicked(PatientListFragment.Intention.VIEW, patientItem)
     }
     this.atRisk.text = patientItem.risk
-    this.atRisk.visibility = if(patientItem.risk.isNullOrEmpty()) View.INVISIBLE else View.VISIBLE
+    this.atRisk.visibility = if (patientItem.risk.isNullOrEmpty()) View.INVISIBLE else View.VISIBLE
 
     setPatientStatus(patientItem.vaccineStatus, patientItem, this.tvRecordVaccine, onItemClicked)
   }

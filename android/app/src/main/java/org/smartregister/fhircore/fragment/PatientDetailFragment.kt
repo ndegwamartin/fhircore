@@ -140,7 +140,8 @@ class PatientDetailFragment : Fragment() {
       activity?.findViewById<TextView>(R.id.patient_bio_data)?.text = patientDetailLabel
       activity?.findViewById<TextView>(R.id.id_patient_number)?.text = "ID: " + patient.logicalId
       activity?.findViewById<TextView>(R.id.risk_flag)?.text = patient.risk
-      activity?.findViewById<TextView>(R.id.risk_flag)?.visibility = if(patient.risk.isNullOrEmpty()) View.INVISIBLE else View.VISIBLE
+      activity?.findViewById<TextView>(R.id.risk_flag)?.visibility =
+        if (patient.risk.isNullOrEmpty()) View.INVISIBLE else View.VISIBLE
 
       patientId = patient.logicalId
     }
