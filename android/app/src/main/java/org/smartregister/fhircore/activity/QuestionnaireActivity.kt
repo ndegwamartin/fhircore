@@ -231,6 +231,6 @@ class QuestionnaireActivity : MultiLanguageBaseActivity() {
   companion object {
     const val QUESTIONNAIRE_TITLE_KEY = "questionnaire-title-key"
     const val QUESTIONNAIRE_FILE_PATH_KEY = "questionnaire-file-path-key"
-    const val QUESTIONNAIRE_FRAGMENT_TAG = "questionannire-fragment-tag"
+    const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
   }
 }
