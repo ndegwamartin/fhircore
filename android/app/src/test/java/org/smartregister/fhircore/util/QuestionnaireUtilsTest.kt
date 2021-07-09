@@ -23,6 +23,8 @@ import ca.uhn.fhir.parser.IParser
 import java.math.BigDecimal
 import java.util.UUID
 import org.hl7.fhir.r4.model.BooleanType
+import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.Flag
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
@@ -48,20 +50,18 @@ class QuestionnaireUtilsTest : RobolectricTest() {
     val qJson =
       context.assets.open("patient-registration.json").bufferedReader().use { it.readText() }
 
-    questionnaire = iParser.parseResource(qJson) as Questionnaire
-
     val qrJson =
-      qJson.replace("Questionnaire", "QuestionnaireResponse").replace("status", "completed")
+      context.assets.open("sample_registration_questionnaireresponse.json").bufferedReader().use {
+        it.readText()
+      }
 
+    questionnaire = iParser.parseResource(qJson) as Questionnaire
     questionnaireResponse = iParser.parseResource(qrJson) as QuestionnaireResponse
   }
 
   @Test
   fun testAsCodeableConcept_shouldReturnCorrectTextAndCodeSystemMapping() {
-    val result =
-      QuestionnaireUtils.asCodeableConcept(
-        questionnaire.item[1].item.single { it.linkId.contentEquals("diabetes_mellitus") }
-      )
+    val result = QuestionnaireUtils.asCodeableConcept("diabetes_mellitus", questionnaire)
 
     Assert.assertEquals("Diabetes Mellitus (DM)", result.text)
 
@@ -85,7 +85,7 @@ class QuestionnaireUtilsTest : RobolectricTest() {
       questionnaireResponse.item[1].item.single { it.linkId.contentEquals("diabetes_mellitus") }
     qrItem.addAnswer().value = BooleanType(true)
 
-    val result = QuestionnaireUtils.asObs(qItem, qrItem, patient)
+    val result = QuestionnaireUtils.asObs(qrItem, patient, questionnaire)
 
     Assert.assertEquals("Diabetes Mellitus (DM)", result.code.text)
 
@@ -149,7 +149,7 @@ class QuestionnaireUtilsTest : RobolectricTest() {
   }
 
   @Test
-  fun testExtractRiskAssessment_shouldReturnValidObservations() {
+  fun testExtractRiskAssessment_shouldReturnValidRiskAssessmentWithNoOutCome() {
     val patient = Patient()
     patient.id = "1122"
 
@@ -161,7 +161,8 @@ class QuestionnaireUtilsTest : RobolectricTest() {
     val observations =
       QuestionnaireUtils.extractObservations(questionnaireResponse, questionnaire, patient)
 
-    val risk = QuestionnaireUtils.extractRiskAssessment(observations, questionnaire)!!
+    val risk =
+      QuestionnaireUtils.extractRiskAssessment(observations, questionnaireResponse, questionnaire)!!
 
     // obs1 with diabetes
     val obs1 = observations[0]
@@ -178,22 +179,94 @@ class QuestionnaireUtilsTest : RobolectricTest() {
     Assert.assertEquals("Observation/" + obs1.id, risk.basis[0].reference)
     Assert.assertEquals("Observation/" + obs2.id, risk.basis[1].reference)
 
+    Assert.assertEquals("225338004", risk.code.coding[0].code)
+    Assert.assertEquals("https://www.snomed.org", risk.code.coding[0].system)
+
     Assert.assertTrue(risk.occurrence.dateTimeValue().isToday)
     Assert.assertEquals(RiskAssessment.RiskAssessmentStatus.FINAL, risk.status)
 
-    Assert.assertEquals(
-      "Client is at risk for serious illness from COVID-19",
-      risk.prediction[0].outcome.text
-    )
+    Assert.assertFalse(risk.prediction[0].hasOutcome())
+  }
 
-    Assert.assertEquals("711365007", risk.prediction[0].outcome.coding[0].code)
+  @Test
+  fun testExtractRiskAssessment_shouldReturnValidRiskAssessmentWithValidOutcome() {
+    val patient = Patient()
+    patient.id = "1122"
+
+    // diabetes_mellitus
+    questionnaireResponse.item[1].item[0].addAnswer().value = BooleanType(true)
+    // hypertension
+    questionnaireResponse.item[1].item[1].addAnswer().value = BooleanType(true)
+    // set at risk
+    questionnaireResponse.item[2].addAnswer().value =
+      Coding().apply {
+        this.code = "870577009"
+        this.system = "https://www.snomed.org"
+        this.display = "High Risk for COVID-19"
+      }
+
+    val observations =
+      QuestionnaireUtils.extractObservations(questionnaireResponse, questionnaire, patient)
+
+    val risk =
+      QuestionnaireUtils.extractRiskAssessment(observations, questionnaireResponse, questionnaire)!!
+
+    // obs1 with diabetes
+    val obs1 = observations[0]
+    Assert.assertEquals("diabetes_mellitus", obs1.code.coding[1].code)
+
+    // obs2 with hypertension
+    val obs2 = observations[1]
+    Assert.assertEquals("hypertension", obs2.code.coding[1].code)
+
+    Assert.assertEquals(obs1.subject.reference, risk.subject.reference)
+    Assert.assertEquals("Patient/1122", risk.subject.reference)
+
+    Assert.assertEquals(BigDecimal(2), risk.prediction[0].relativeRisk)
+    Assert.assertEquals("Observation/" + obs1.id, risk.basis[0].reference)
+    Assert.assertEquals("Observation/" + obs2.id, risk.basis[1].reference)
+
+    Assert.assertEquals("225338004", risk.code.coding[0].code)
+    Assert.assertEquals("https://www.snomed.org", risk.code.coding[0].system)
+
+    Assert.assertTrue(risk.occurrence.dateTimeValue().isToday)
+    Assert.assertEquals(RiskAssessment.RiskAssessmentStatus.FINAL, risk.status)
+
+    Assert.assertEquals("High Risk for COVID-19", risk.prediction[0].outcome.text)
+
+    Assert.assertEquals("870577009", risk.prediction[0].outcome.coding[0].code)
     Assert.assertEquals("https://www.snomed.org", risk.prediction[0].outcome.coding[0].system)
+  }
 
-    Assert.assertEquals("high_risk", risk.prediction[0].outcome.coding[1].code)
-    Assert.assertEquals(
-      "http://hl7.org/fhir/StructureDefinition/RiskAssessment",
-      risk.prediction[0].outcome.coding[1].system
-    )
+  @Test
+  fun testExtractFlag_shouldReturnValidFlagWithData() {
+    val patient = Patient()
+    patient.id = "1122"
+
+    // diabetes_mellitus
+    questionnaireResponse.item[1].item[0].addAnswer().value = BooleanType(true)
+    // hypertension
+    questionnaireResponse.item[1].item[1].addAnswer().value = BooleanType(true)
+    // set at risk
+    questionnaireResponse.item[2].addAnswer().value =
+      Coding().apply {
+        this.code = "870577009"
+        this.system = "https://www.snomed.org"
+        this.display = "High Risk for COVID-19"
+      }
+    val observations =
+      QuestionnaireUtils.extractObservations(questionnaireResponse, questionnaire, patient)
+
+    val risk =
+      QuestionnaireUtils.extractRiskAssessment(observations, questionnaireResponse, questionnaire)!!
+
+    val flag = QuestionnaireUtils.extractFlag(questionnaireResponse, questionnaire, risk)!!
+
+    Assert.assertEquals(risk.subject.reference, flag.subject.reference)
+    Assert.assertEquals(Flag.FlagStatus.ACTIVE, flag.status)
+
+    Assert.assertEquals("870577009", flag.code.coding[0].code)
+    Assert.assertEquals("https://www.snomed.org", flag.code.coding[0].system)
   }
 
   @Test
@@ -205,15 +278,25 @@ class QuestionnaireUtilsTest : RobolectricTest() {
     questionnaireResponse.item[1].item[0].addAnswer().value = BooleanType(true)
     // hypertension
     questionnaireResponse.item[1].item[1].addAnswer().value = BooleanType(true)
+    // set at risk
+    questionnaireResponse.item[2].addAnswer().value =
+      Coding().apply {
+        this.code = "870577009"
+        this.system = "https://www.snomed.org"
+        this.display = "High Risk for COVID-19"
+      }
 
     val observations =
       QuestionnaireUtils.extractObservations(questionnaireResponse, questionnaire, patient)
 
-    val risk = QuestionnaireUtils.extractRiskAssessment(observations, questionnaire)!!
+    val risk =
+      QuestionnaireUtils.extractRiskAssessment(observations, questionnaireResponse, questionnaire)!!
+    val flag = QuestionnaireUtils.extractFlag(questionnaireResponse, questionnaire, risk)!!
 
-    val flag = QuestionnaireUtils.extractFlagExtension(questionnaire, risk)!!
+    val flagExt =
+      QuestionnaireUtils.extractFlagExtension(flag, questionnaireResponse, questionnaire)!!
 
-    Assert.assertEquals("http://hl7.org/fhir/StructureDefinition/flag-detail", flag.url)
-    Assert.assertEquals("at risk", flag.value.toString())
+    Assert.assertEquals("http://hl7.org/fhir/StructureDefinition/flag-detail", flagExt.url)
+    Assert.assertEquals("at risk", flagExt.value.toString())
   }
 }

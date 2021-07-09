@@ -556,28 +556,41 @@
       ]
     },
     {
-      "linkId" : "high_risk",
+      "linkId" : "risk_assessment",
       "definition": "http://hl7.org/fhir/StructureDefinition/RiskAssessment",
       "code" : [
         {
           "system" : "https://www.snomed.org",
-          "code" : "711365007",
-          "display" : "High Risk"
+          "code" : "225338004",
+          "display" : "Risk Assessment"
         }
       ],
       "text" : "Client is at risk for serious illness from COVID-19",
-      "type" : "display",
+      "type" : "choice",
       "extension" : [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/flag-detail",
           "valueString": "at risk"
         },
         {
-          "url" : "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression",
-          "valueExpression" : {
-            "description" : "High risk calculation- does not work in current version //TODO",
-            "language" : "text/fhirpath",
-            "expression" : "%resource.repeats(item).where(linkId='comorbidities').answers().sum()"
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "radio-button",
+                "display": "Radio Button"
+              }
+            ]
+          }
+        }
+      ],
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system" : "https://www.snomed.org",
+            "code" : "870577009",
+            "display" : "High Risk for COVID-19"
           }
         }
       ],
