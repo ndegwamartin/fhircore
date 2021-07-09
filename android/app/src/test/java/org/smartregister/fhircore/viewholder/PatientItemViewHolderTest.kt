@@ -80,5 +80,6 @@ class PatientItemViewHolderTest : RobolectricTest() {
     Assert.assertEquals("", patientItem.html)
     Assert.assertEquals("1234567", patientItem.phone)
     Assert.assertEquals("2", patientItem.logicalId)
+    Assert.assertEquals("high risk", patientItem.risk)
   }
 }
