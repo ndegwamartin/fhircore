@@ -38,6 +38,7 @@ import org.hl7.fhir.r4.model.StringType
 import org.smartregister.fhircore.FhirApplication
 import org.smartregister.fhircore.R
 import org.smartregister.fhircore.fragment.PatientDetailFragment
+import org.smartregister.fhircore.util.QuestionnaireUtils
 import org.smartregister.fhircore.viewmodel.QuestionnaireViewModel
 
 class QuestionnaireActivity : MultiLanguageBaseActivity() {
@@ -83,6 +84,27 @@ class QuestionnaireActivity : MultiLanguageBaseActivity() {
         ?: UUID.randomUUID().toString().toLowerCase()
 
     viewModel.saveResource(patient)
+
+    // only one level of nesting per obs group is supported by fhircore for now
+    val observations =
+      QuestionnaireUtils.extractObservations(questionnaireResponse, questionnaire, patient)
+
+    viewModel.saveObservations(observations)
+
+    // only one risk assessment per questionnaire is supported by fhircore for now
+    val riskAssessment = QuestionnaireUtils.extractRiskAssessment(observations, questionnaire)
+
+    if (riskAssessment != null) {
+      viewModel.saveResource(riskAssessment)
+
+      var flag = QuestionnaireUtils.extractFlagExtension(questionnaire, riskAssessment)
+
+      if (flag != null) {
+        patient.addExtension(flag)
+
+        viewModel.saveResource(patient)
+      }
+    }
 
     this.startActivity(Intent(this, PatientListActivity::class.java))
   }
