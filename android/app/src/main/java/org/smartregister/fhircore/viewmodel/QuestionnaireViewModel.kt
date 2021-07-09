@@ -49,11 +49,7 @@ class QuestionnaireViewModel(application: Application, private val state: SavedS
   }
 
   fun saveObservations(resource: List<Observation>) {
-    resource.stream().forEach {
-      viewModelScope.launch {
-        saveResource(it)
-      }
-    }
+    resource.stream().forEach { viewModelScope.launch { saveResource(it) } }
   }
 
   fun savePatient(resource: Patient) {

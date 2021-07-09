@@ -20,14 +20,12 @@ import java.util.UUID
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Extension
-import org.hl7.fhir.r4.model.Flag
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.RiskAssessment
-import java.util.stream.Collectors
 
 object QuestionnaireUtils {
   fun asCodeableConcept(q: Questionnaire.QuestionnaireItemComponent): CodeableConcept {
@@ -93,28 +91,34 @@ object QuestionnaireUtils {
     return observations
   }
 
-  fun extractFlagExtension(questionnaire: Questionnaire, riskAssessment: RiskAssessment): Extension? {
+  fun extractFlagExtension(
+    questionnaire: Questionnaire,
+    riskAssessment: RiskAssessment
+  ): Extension? {
     // no risk then no flag
     if (riskAssessment.prediction[0].relativeRisk.equals(0)) {
       return null
     }
 
     // if no flagging is needed return
-    val qItem = questionnaire.item.map {
-      itemWithExtension(it, "flag-detail")
-    }.singleOrNull {it != null} ?:return null
+    val qItem =
+      questionnaire.item.map { itemWithExtension(it, "flag-detail") }.singleOrNull { it != null }
+        ?: return null
 
     return qItem.extension.single { it.url.contains("flag-detail") }
   }
 
-  private fun itemWithDefinition(questionnaireItem: Questionnaire.QuestionnaireItemComponent, definition: String): Questionnaire.QuestionnaireItemComponent? {
-    if(questionnaireItem.definition?.contains(definition) == true){
+  private fun itemWithDefinition(
+    questionnaireItem: Questionnaire.QuestionnaireItemComponent,
+    definition: String
+  ): Questionnaire.QuestionnaireItemComponent? {
+    if (questionnaireItem.definition?.contains(definition) == true) {
       return questionnaireItem
     }
 
     for (i in questionnaireItem.item) {
       var qit = itemWithDefinition(i, definition)
-      if(qit != null){
+      if (qit != null) {
         return qit
       }
     }
@@ -122,14 +126,17 @@ object QuestionnaireUtils {
     return null
   }
 
-  private fun itemWithExtension(questionnaireItem: Questionnaire.QuestionnaireItemComponent, extension: String): Questionnaire.QuestionnaireItemComponent? {
-    if(questionnaireItem.extension.singleOrNull { ro -> ro.url.contains(extension) } != null){
+  private fun itemWithExtension(
+    questionnaireItem: Questionnaire.QuestionnaireItemComponent,
+    extension: String
+  ): Questionnaire.QuestionnaireItemComponent? {
+    if (questionnaireItem.extension.singleOrNull { ro -> ro.url.contains(extension) } != null) {
       return questionnaireItem
     }
 
     for (i in questionnaireItem.item) {
       var qit = itemWithExtension(i, extension)
-      if(qit != null){
+      if (qit != null) {
         return qit
       }
     }
@@ -137,10 +144,15 @@ object QuestionnaireUtils {
     return null
   }
 
-  fun extractRiskAssessment(observations: List<Observation>, questionnaire: Questionnaire): RiskAssessment? {
-    val qItem = questionnaire.item.map {
-      itemWithDefinition(it, "RiskAssessment")
-    }.singleOrNull {it != null} ?:return null
+  fun extractRiskAssessment(
+    observations: List<Observation>,
+    questionnaire: Questionnaire
+  ): RiskAssessment? {
+    val qItem =
+      questionnaire.item.map { itemWithDefinition(it, "RiskAssessment") }.singleOrNull {
+        it != null
+      }
+        ?: return null
 
     var riskScore = 0
     val risk = RiskAssessment()
@@ -148,24 +160,23 @@ object QuestionnaireUtils {
     observations.forEach {
       val isRiskObs = it.extension.singleOrNull { ro -> ro.url.contains("RiskAssessment") } != null
 
-        if(it.hasValue() && isRiskObs) {
-          riskScore++
+      if (it.hasValue() && isRiskObs) {
+        riskScore++
 
-          risk.addBasis(Reference().apply { this.reference = "Observation/" + it.id })
-        }
+        risk.addBasis(Reference().apply { this.reference = "Observation/" + it.id })
       }
+    }
 
     risk.status = RiskAssessment.RiskAssessmentStatus.FINAL
     risk.id = UUID.randomUUID().toString()
     risk.subject = observations[0].subject
     risk.occurrence = DateTimeType.now()
-    risk.addPrediction().apply { 
-        this.relativeRisk = riskScore.toBigDecimal()
-        this.outcome.text = qItem.text
-        this.outcome.coding = qItem.code
-      }
-    
+    risk.addPrediction().apply {
+      this.relativeRisk = riskScore.toBigDecimal()
+      this.outcome.text = qItem.text
+      this.outcome.coding = qItem.code
+    }
+
     return risk
-  } 
-  
+  }
 }
