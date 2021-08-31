@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.smartregister.fhircore.eir.ui.questionnaire
+package org.smartregister.fhircore.engine.ui.questionnaire
 
 import android.app.Application
 import android.content.Context
@@ -32,13 +32,13 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StructureMap
-import org.smartregister.fhircore.eir.EirApplication
+import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 
 class QuestionnaireViewModel(application: Application, private val state: SavedStateHandle) :
   AndroidViewModel(application) {
 
   var structureMapProvider: (suspend (String) -> StructureMap?)? = null
-  var fhirEngine = EirApplication.getContext().fhirEngine
+  val fhirEngine = (application as ConfigurableApplication).fhirEngine
 
   val questionnaire: Questionnaire
     get() {
@@ -73,7 +73,7 @@ class QuestionnaireViewModel(application: Application, private val state: SavedS
         val structureMapId = structureMapUrl?.substringAfterLast("/")
         if (structureMapId != null) {
           structureMap =
-            EirApplication.getContext().fhirEngine.load(StructureMap::class.java, structureMapId)
+            fhirEngine.load(StructureMap::class.java, structureMapId)
         }
       }
     }
@@ -132,10 +132,10 @@ class QuestionnaireViewModel(application: Application, private val state: SavedS
         ResourceMapper.extract(questionnaire, questionnaireResponse).entry[0].resource as Patient
 
       val barcode =
-        QuestionnaireUtils.valueStringWithLinkId(
-          questionnaireResponse,
-          QuestionnaireActivity.QUESTIONNAIRE_ARG_BARCODE_KEY
-        )
+          QuestionnaireUtils.valueStringWithLinkId(
+              questionnaireResponse,
+              QuestionnaireActivity.QUESTIONNAIRE_ARG_BARCODE_KEY
+          )
 
       patient.id = barcode ?: UUID.randomUUID().toString().lowercase()
 
@@ -143,26 +143,28 @@ class QuestionnaireViewModel(application: Application, private val state: SavedS
 
       // only one level of nesting per obs group is supported by fhircore for now
       val observations =
-        QuestionnaireUtils.extractObservations(questionnaireResponse, questionnaire, patient)
+          QuestionnaireUtils.extractObservations(questionnaireResponse, questionnaire, patient)
 
       observations.forEach { saveResource(it) }
 
       // only one risk assessment per questionnaire is supported by fhircore for now
       val riskAssessment =
-        QuestionnaireUtils.extractRiskAssessment(observations, questionnaireResponse, questionnaire)
+          QuestionnaireUtils.extractRiskAssessment(observations,
+              questionnaireResponse,
+              questionnaire)
 
       if (riskAssessment != null) {
         saveResource(riskAssessment)
 
         val flag =
-          QuestionnaireUtils.extractFlag(questionnaireResponse, questionnaire, riskAssessment)
+            QuestionnaireUtils.extractFlag(questionnaireResponse, questionnaire, riskAssessment)
 
         if (flag != null) {
           saveResource(flag)
 
           // todo remove this when sync is implemented
           val ext =
-            QuestionnaireUtils.extractFlagExtension(flag, questionnaireResponse, questionnaire)
+              QuestionnaireUtils.extractFlagExtension(flag, questionnaireResponse, questionnaire)
           if (ext != null) {
             patient.addExtension(ext)
           }
