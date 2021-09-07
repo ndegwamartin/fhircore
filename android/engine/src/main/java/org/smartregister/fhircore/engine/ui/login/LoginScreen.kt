@@ -80,12 +80,17 @@ fun LoginPage(
 ) {
   var showPassword by remember { mutableStateOf(false) }
 
-  Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+  Column(modifier = modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp)) {
     Spacer(modifier = modifier.height(60.dp))
     Image(
       painter = painterResource(id = R.drawable.ic_default_logo),
       contentDescription = stringResource(id = R.string.app_logo),
-      modifier = modifier.align(Alignment.CenterHorizontally).height(120.dp).width(120.dp)
+      modifier = modifier
+              .align(Alignment.CenterHorizontally)
+              .height(120.dp)
+              .width(120.dp)
     )
     Text(
       color = MaterialTheme.colors.primary,
@@ -93,13 +98,19 @@ fun LoginPage(
       fontWeight = FontWeight.Bold,
       fontSize = 32.sp,
       modifier =
-        modifier.wrapContentWidth().padding(vertical = 8.dp).align(Alignment.CenterHorizontally)
+      modifier
+              .wrapContentWidth()
+              .padding(vertical = 8.dp)
+              .align(Alignment.CenterHorizontally)
     )
 
     Text(
       fontSize = 16.sp,
       text = stringResource(id = R.string.app_version, viewConfiguration.applicationVersion),
-      modifier = modifier.wrapContentWidth().padding(0.dp).align(Alignment.CenterHorizontally)
+      modifier = modifier
+              .wrapContentWidth()
+              .padding(0.dp)
+              .align(Alignment.CenterHorizontally)
     )
     Spacer(modifier = modifier.height(40.dp))
 
@@ -112,7 +123,9 @@ fun LoginPage(
           modifier = modifier.padding(vertical = 4.dp)
         )
       },
-      modifier = modifier.fillMaxWidth().padding(vertical = 4.dp)
+      modifier = modifier
+              .fillMaxWidth()
+              .padding(vertical = 4.dp)
     )
     TextField(
       value = password,
@@ -126,7 +139,9 @@ fun LoginPage(
       visualTransformation =
         if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-      modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+      modifier = modifier
+              .fillMaxWidth()
+              .padding(vertical = 4.dp),
       trailingIcon = {
         val image = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
         IconButton(onClick = { showPassword = !showPassword }) { Icon(imageVector = image, "") }
@@ -138,7 +153,10 @@ fun LoginPage(
         fontSize = 14.sp,
         color = MaterialTheme.colors.error,
         text = stringResource(id = R.string.login_error, loginError),
-        modifier = modifier.wrapContentWidth().padding(0.dp).align(Alignment.Start)
+        modifier = modifier
+                .wrapContentWidth()
+                .padding(0.dp)
+                .align(Alignment.Start)
       )
     }
     Spacer(modifier = modifier.height(40.dp))
@@ -150,7 +168,9 @@ fun LoginPage(
         modifier = modifier.fillMaxWidth()
       ) { Text(text = stringResource(id = R.string.login_text), modifier = modifier.padding(8.dp)) }
       if (showProgressBar) {
-        CircularProgressBar(modifier = modifier.matchParentSize().padding(4.dp))
+        CircularProgressBar(modifier = modifier
+                .matchParentSize()
+                .padding(4.dp))
       }
     }
 
@@ -158,13 +178,18 @@ fun LoginPage(
     Text(
       text = stringResource(id = R.string.powered_by),
       modifier =
-        modifier.wrapContentWidth().padding(vertical = 8.dp).align(Alignment.CenterHorizontally)
+      modifier
+              .wrapContentWidth()
+              .padding(vertical = 8.dp)
+              .align(Alignment.CenterHorizontally)
     )
 
     Image(
       painter = painterResource(id = R.drawable.ic_opensrp_logo),
       contentDescription = stringResource(id = R.string.app_logo),
-      modifier = modifier.align(Alignment.CenterHorizontally).requiredHeight(40.dp)
+      modifier = modifier
+              .align(Alignment.CenterHorizontally)
+              .requiredHeight(40.dp)
     )
     Spacer(modifier = modifier.height(60.dp))
   }
