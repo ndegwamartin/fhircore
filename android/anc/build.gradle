@@ -123,6 +123,7 @@ dependencies {
     // App dependencies
     implementation 'androidx.annotation:annotation:1.2.0'
     implementation 'com.google.guava:guava:26.0-android'
+    androidTestImplementation "androidx.ui:ui-test:0.1.0-dev10"
 
     //espresso
     //androidTestImplementation "androidx.test.espresso:espresso-contrib:3.4.0"
@@ -140,9 +141,13 @@ dependencies {
     androidTestImplementation 'info.cukes:cucumber-picocontainer:1.2.5'
 
     //jetpack
-    androidTestImplementation "androidx.compose.ui:ui-test:1.0.2"
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.0.2'
-    debugImplementation "androidx.compose.ui:ui-test-manifest:1.0.2"
+//    androidTestImplementation "androidx.compose.ui:ui-test:1.0.2"
+//    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.0.2'
+//    debugImplementation "androidx.compose.ui:ui-test-manifest:1.0.2"
+
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.0.2")
+// Needed for createComposeRule, but not createAndroidComposeRule:
+   // debugImplementation("androidx.compose.ui:ui-test-manifest:1.0.2")
 
 
     implementation deps.work.runtime
