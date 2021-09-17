@@ -40,9 +40,9 @@ class LoginDetailsSteps{
     @Rule
     var activityScenarioRule = ActivityScenarioRule(LoginActivity::class.java)
 
-//
-//    @Rule
-//    val composeTestRule = createAndroidComposeRule<LoginActivity>()
+
+    @Rule
+    val composeTestRule = createAndroidComposeRule<LoginActivity>()
 
 
     @Before
@@ -69,21 +69,21 @@ class LoginDetailsSteps{
                 authenticationService = (AncApplication.getContext() as ConfigurableApplication).authenticationService,
                 loginViewConfiguration = loginViewConfigurationOf("ANC", "0.0.1", true)
         )
-//
-//        composeTestRule.runOnUiThread {
-//            loginViewModel.onUsernameUpdated("demo")
-//            loginViewModel.onPasswordUpdated("Amani123")
-//        }
-//
-//        composeTestRule.setContent {
-//            AppTheme {
-//                LoginScreen(loginViewModel = loginViewModel)
-//            }
-//        }
-//        composeTestRule.onNodeWithText("Subhan").assertIsDisplayed()
-//        composeTestRule.onNodeWithText("demo").assertIsDisplayed()
-//        composeTestRule.onNodeWithText("Amani123").assertIsDisplayed()
-//        composeTestRule.onNodeWithText("LOGIN").performClick()
+
+        composeTestRule.runOnUiThread {
+            loginViewModel.onUsernameUpdated("demo")
+            loginViewModel.onPasswordUpdated("Amani123")
+        }
+
+        composeTestRule.setContent {
+            AppTheme {
+                LoginScreen(loginViewModel = loginViewModel)
+            }
+        }
+        composeTestRule.onNodeWithText("Subhan").assertIsDisplayed()
+        composeTestRule.onNodeWithText("demo").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Amani123").assertIsDisplayed()
+        composeTestRule.onNodeWithText("LOGIN").performClick()
     }
 
     @And("^I close the keyboard$")
