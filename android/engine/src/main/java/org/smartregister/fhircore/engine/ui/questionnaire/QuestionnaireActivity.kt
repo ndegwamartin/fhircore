@@ -16,6 +16,7 @@
 
 package org.smartregister.fhircore.engine.ui.questionnaire
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -41,6 +42,7 @@ import org.smartregister.fhircore.engine.util.FormConfigUtil
 import org.smartregister.fhircore.engine.util.extension.assertIsConfigurable
 import org.smartregister.fhircore.engine.util.extension.createFactory
 import org.smartregister.fhircore.engine.util.extension.showToast
+import timber.log.Timber
 
 /**
  * Launches Questionnaire with given id. If questionnaire has subjectType = Patient his activity can
@@ -53,7 +55,7 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
 
   val dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider
 
-  private lateinit var questionnaireConfig: QuestionnaireConfig
+  lateinit var questionnaireConfig: QuestionnaireConfig
 
   lateinit var questionnaireViewModel: QuestionnaireViewModel
 
@@ -69,8 +71,7 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_questionnaire)
     application.assertIsConfigurable()
-    if (!intent.hasExtra(QUESTIONNAIRE_ARG_PATIENT_KEY) && !intent.hasExtra(QUESTIONNAIRE_ARG_FORM)
-    ) {
+    if (!intent.hasExtra(QUESTIONNAIRE_ARG_FORM)) {
       showToast(getString(R.string.error_loading_form))
       finish()
     }
@@ -149,13 +150,40 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
 
   open fun handleQuestionnaireResponse(questionnaireResponse: QuestionnaireResponse) {
     if (questionnaire != null) {
+      val alertDialog = showDialog()
+
+      questionnaireViewModel.extractionProgress.observe(
+        this,
+        { result ->
+
+          // TODO: Unregister this observer
+
+          if (result) {
+            alertDialog.dismiss()
+            finish()
+          } else {
+            Timber.e("An error occurred during extraction")
+          }
+        }
+      )
+
       questionnaireViewModel.saveExtractedResources(
         context = this@QuestionnaireActivity,
         questionnaire = questionnaire!!,
         questionnaireResponse = questionnaireResponse,
-        resourceId = ""
+        resourceId = null
       )
     }
+  }
+
+  fun showDialog(): AlertDialog {
+    val dialogBuilder =
+      AlertDialog.Builder(this).apply {
+        setView(R.layout.dialog_saving)
+        setCancelable(false)
+      }
+
+    return dialogBuilder.create().apply { show() }
   }
 
   companion object {
@@ -163,7 +191,7 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
     const val QUESTIONNAIRE_PATH_KEY = "questionnaire_path_key"
     const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire_fragment_tag"
     const val QUESTIONNAIRE_ARG_PATIENT_KEY = "questionnaire_patient_item_id"
-    private const val QUESTIONNAIRE_ARG_FORM = "questionnaire_form"
+    const val QUESTIONNAIRE_ARG_FORM = "questionnaire_form"
     private const val FORM_CONFIGURATIONS = "form_configurations.json"
 
     fun requiredIntentArgs(clientIdentifier: String?, form: String) =
