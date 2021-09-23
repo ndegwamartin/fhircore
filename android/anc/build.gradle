@@ -42,7 +42,7 @@ android {
         }
     }
 
-    }
+
     defaultConfig {
         applicationId "org.smartregister.fhircore.anc"
         minSdkVersion 21
@@ -62,7 +62,7 @@ android {
         buildConfigField("String", 'OAUTH_SCOPE', "\"${OAUTH_SCOPE}\"")
     }
 
-    sourceSets{
+    sourceSets {
         main { java.srcDirs = ['src/main/java'] }
         test { java.srcDirs = ['src/test/java'] }
         androidTest { java.srcDirs = ['src/androidTest/java'] }
@@ -131,7 +131,7 @@ android {
         }
     }
 
-
+}
 
 def getInstrumentation() {
     project.hasProperty('cucumber') ? 'org.smartregister.fhircore.anc.test.CucumberTestRunner' : 'androidx.test.runner.AndroidJUnitRunner'
@@ -212,7 +212,7 @@ dependencies {
 
     androidTestUtil 'androidx.test:orchestrator:1.4.0'
 
-    implementation deps.work.runtimeit status
+    implementation deps.work.runtime
 
 
 }
