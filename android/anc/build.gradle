@@ -212,7 +212,7 @@ dependencies {
 
     androidTestUtil 'androidx.test:orchestrator:1.4.0'
 
-    implementation deps.work.runtime
+    implementation deps.work.runtimeit status
 
 
 }
