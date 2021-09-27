@@ -7,7 +7,11 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -22,6 +26,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.smartregister.fhircore.anc.AncApplication
+import org.smartregister.fhircore.anc.MainActivity
+import org.smartregister.fhircore.anc.R
 
 import org.smartregister.fhircore.anc.cucumber.espresso.login.LoginScreenRobot
 import org.smartregister.fhircore.anc.ui.login.LoginActivity
@@ -38,12 +44,7 @@ class LoginDetailsSteps{
     private val robot = LoginScreenRobot()
 
     @Rule
-    var activityScenarioRule = ActivityScenarioRule(LoginActivity::class.java)
-
-
-    @Rule
-    val composeTestRule = createAndroidComposeRule<LoginActivity>()
-
+    var activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Before
     fun setup(scenario: Scenario) {
@@ -57,33 +58,14 @@ class LoginDetailsSteps{
     @Given("^I start the application$")
     fun i_start_app() {
         Intents.init()
-        ActivityScenario.launch(LoginActivity::class.java)
+        ActivityScenario.launch(MainActivity::class.java)
 
     }
 
 
     @When("^I click email field$")
     fun i_click_email_field() {
-        val loginViewModel = LoginViewModel(
-                application = AncApplication.getContext(),
-                authenticationService = (AncApplication.getContext() as ConfigurableApplication).authenticationService,
-                loginViewConfiguration = loginViewConfigurationOf("ANC", "0.0.1", true)
-        )
 
-        composeTestRule.runOnUiThread {
-            loginViewModel.onUsernameUpdated("demo")
-            loginViewModel.onPasswordUpdated("Amani123")
-        }
-
-        composeTestRule.setContent {
-            AppTheme {
-                LoginScreen(loginViewModel = loginViewModel)
-            }
-        }
-        composeTestRule.onNodeWithText("Subhan").assertIsDisplayed()
-        composeTestRule.onNodeWithText("demo").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Amani123").assertIsDisplayed()
-        composeTestRule.onNodeWithText("LOGIN").performClick()
     }
 
     @And("^I close the keyboard$")
@@ -93,7 +75,7 @@ class LoginDetailsSteps{
 
     @And("^I enter valid email (\\S+)$")
     fun i_enter_valid_email(email: String) {
-        robot.enterEmail(email)
+        onView(withId(R.id.editText)).perform(typeText(email))
     }
 
     @And("^I click password field$")
@@ -108,7 +90,7 @@ class LoginDetailsSteps{
 
     @And("^I click sign in button$")
     fun i_click_sign_in_button() {
-        robot.clickSignInButton()
+        onView(withId(R.id.button)).perform(click())
     }
 
     @Then("^I expect to see successful login message$")

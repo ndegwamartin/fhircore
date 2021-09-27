@@ -10,7 +10,7 @@ import java.io.File
 
 @CucumberOptions(features = ["features"],
         glue = ["org.smartregister.fhircore.anc.steps"],
-        tags = ["@all"])
+        tags = ["@cucumberTest"])
 @Suppress("unused")
 class CucumberTestRunner: CucumberAndroidJUnitRunner() {
 
