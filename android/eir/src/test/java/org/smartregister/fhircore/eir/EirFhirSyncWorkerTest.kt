@@ -25,12 +25,9 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.robolectric.annotation.Config
-import org.smartregister.fhircore.eir.robolectric.RobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
+import org.smartregister.fhircore.sharedtest.robolectric.DefaultRobolectricTest
 
-@Config(shadows = [EirApplicationShadow::class])
-class EirFhirSyncWorkerTest : RobolectricTest() {
+class EirFhirSyncWorkerTest : DefaultRobolectricTest() {
 
   private lateinit var eirFhirSyncWorker: EirFhirSyncWorker
 

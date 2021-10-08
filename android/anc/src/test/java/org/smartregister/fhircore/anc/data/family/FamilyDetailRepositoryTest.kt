@@ -31,8 +31,8 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.smartregister.fhircore.anc.coroutine.CoroutineTestRule
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.rule.CoroutineTestRule
 
 class FamilyDetailRepositoryTest : RobolectricTest() {
 

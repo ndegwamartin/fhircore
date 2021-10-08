@@ -16,6 +16,7 @@
 
 package org.smartregister.fhircore.eir.ui.patient.register
 
+import androidx.test.core.app.ApplicationProvider
 import io.mockk.spyk
 import java.util.Date
 import org.hl7.fhir.r4.model.CodeableConcept
@@ -30,11 +31,8 @@ import org.hl7.fhir.r4.model.StringType
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.robolectric.annotation.Config
-import org.smartregister.fhircore.eir.robolectric.RobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [EirApplicationShadow::class])
 class PatientMapperTest : RobolectricTest() {
   private lateinit var immunizations: List<Immunization>
   private lateinit var patient: Patient
@@ -48,7 +46,8 @@ class PatientMapperTest : RobolectricTest() {
   @Test
   fun testMapToDomainModel() {
     val dto: Pair<Patient, List<Immunization>> = Pair(patient, immunizations)
-    val patientItem = PatientItemMapper.mapToDomainModel(dto = dto)
+    val patientItem =
+      PatientItemMapper(ApplicationProvider.getApplicationContext()).mapToDomainModel(dto = dto)
     with(patientItem) {
       Assert.assertEquals(this.age, "0")
       Assert.assertEquals(this.name, "Nelson Mandela")

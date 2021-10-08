@@ -30,22 +30,18 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Assert
 import org.junit.Test
-import org.robolectric.annotation.Config
-import org.smartregister.fhircore.eir.robolectric.RobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
-import org.smartregister.fhircore.eir.shadow.ShadowNpmPackageProvider
 import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 import org.smartregister.fhircore.engine.util.extension.lastSyncDateTime
 import org.smartregister.fhircore.engine.util.extension.runOneTimeSync
+import org.smartregister.fhircore.sharedtest.robolectric.DefaultRobolectricTest
 
-@Config(shadows = [EirApplicationShadow::class, ShadowNpmPackageProvider::class])
-class EirApplicationTest : RobolectricTest() {
+class EirApplicationTest : DefaultRobolectricTest() {
 
   private val application = ApplicationProvider.getApplicationContext<EirApplication>()
 
   @Test
   fun testConstructFhirEngineShouldReturnNonNull() {
-    Assert.assertNotNull(EirApplication.getContext().fhirEngine)
+    Assert.assertNotNull(application.fhirEngine)
   }
   @Test
   fun testThatApplicationIsInstanceOfConfigurableApplication() {
@@ -56,7 +52,7 @@ class EirApplicationTest : RobolectricTest() {
 
   @Test
   fun testSyncJobShouldReturnNonNull() {
-    Assert.assertNotNull(EirApplication.getContext().syncJob)
+    Assert.assertNotNull(application.syncJob)
   }
 
   @Test

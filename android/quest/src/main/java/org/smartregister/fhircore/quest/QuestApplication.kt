@@ -31,8 +31,7 @@ import org.smartregister.fhircore.engine.configuration.app.ApplicationConfigurat
 import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 import org.smartregister.fhircore.engine.configuration.app.applicationConfigurationOf
 import org.smartregister.fhircore.engine.util.DefaultDispatcherProvider
-import org.smartregister.fhircore.engine.util.SecureSharedPreference
-import org.smartregister.fhircore.engine.util.SharedPreferencesHelper
+import org.smartregister.fhircore.engine.util.SharedPreferenceHelper
 import org.smartregister.fhircore.engine.util.USER_QUESTIONNAIRE_PUBLISHER_SHARED_PREFERENCE_KEY
 import org.smartregister.fhircore.engine.util.extension.initializeWorkerContext
 import org.smartregister.fhircore.engine.util.extension.runPeriodicSync
@@ -40,22 +39,17 @@ import timber.log.Timber
 
 class QuestApplication : Application(), ConfigurableApplication {
 
-  private val defaultDispatcherProvider = DefaultDispatcherProvider
+  override val fhirEngine: FhirEngine by lazy { constructFhirEngine() }
 
   override lateinit var workerContextProvider: SimpleWorkerContext
 
-  override val syncJob: SyncJob
-    get() = Sync.basicSyncJob(getContext())
+  override lateinit var syncJob: SyncJob
 
   override lateinit var applicationConfiguration: ApplicationConfiguration
 
-  override val authenticationService: AuthenticationService
-    get() = QuestAuthenticationService(applicationContext)
+  override lateinit var authenticationService: AuthenticationService
 
-  override val fhirEngine: FhirEngine by lazy { constructFhirEngine() }
-
-  override val secureSharedPreference: SecureSharedPreference
-    get() = SecureSharedPreference(applicationContext)
+  override lateinit var sharedPreferenceHelper: SharedPreferenceHelper
 
   override val resourceSyncParams: Map<ResourceType, Map<String, String>>
     get() {
@@ -66,10 +60,15 @@ class QuestApplication : Application(), ConfigurableApplication {
       )
     }
 
+  private val defaultDispatcherProvider = DefaultDispatcherProvider
+
   private fun buildQuestionnaireFilterMap(): MutableMap<String, String> {
     val questionnaireFilterMap: MutableMap<String, String> = HashMap()
     val publisher =
-      SharedPreferencesHelper.read(USER_QUESTIONNAIRE_PUBLISHER_SHARED_PREFERENCE_KEY, null)
+      sharedPreferenceHelper.read(
+        key = USER_QUESTIONNAIRE_PUBLISHER_SHARED_PREFERENCE_KEY,
+        defaultValue = null
+      )
     if (publisher != null) questionnaireFilterMap[Questionnaire.SP_PUBLISHER] = publisher
     return questionnaireFilterMap
   }
@@ -88,8 +87,6 @@ class QuestApplication : Application(), ConfigurableApplication {
 
   override fun onCreate() {
     super.onCreate()
-    SharedPreferencesHelper.init(this)
-    questApplication = this
     configureApplication(
       applicationConfigurationOf(
         oauthServerBaseUrl = BuildConfig.OAUTH_BASE_URL,
@@ -99,6 +96,9 @@ class QuestApplication : Application(), ConfigurableApplication {
         languages = listOf("en", "sw")
       )
     )
+    syncJob = Sync.basicSyncJob(this)
+    authenticationService = QuestAuthenticationService(this)
+    sharedPreferenceHelper = SharedPreferenceHelper(this)
 
     if (BuildConfig.DEBUG) {
       Timber.plant(Timber.DebugTree())
@@ -109,11 +109,5 @@ class QuestApplication : Application(), ConfigurableApplication {
     }
 
     schedulePeriodicSync()
-  }
-
-  companion object {
-    private lateinit var questApplication: QuestApplication
-
-    fun getContext() = questApplication
   }
 }

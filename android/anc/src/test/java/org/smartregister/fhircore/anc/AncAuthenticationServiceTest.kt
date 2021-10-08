@@ -21,9 +21,9 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.robolectric.util.ReflectionHelpers
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
 import org.smartregister.fhircore.anc.ui.login.LoginActivity
 import org.smartregister.fhircore.engine.configuration.app.applicationConfigurationOf
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class AncAuthenticationServiceTest : RobolectricTest() {
 

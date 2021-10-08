@@ -20,7 +20,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.robolectric.Robolectric
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class AncAuthAndroidServiceTest : RobolectricTest() {
 

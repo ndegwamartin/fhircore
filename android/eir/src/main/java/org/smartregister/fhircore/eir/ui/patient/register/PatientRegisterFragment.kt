@@ -102,7 +102,7 @@ class PatientRegisterFragment :
     val patientRepository =
       PatientRepository(
         (requireActivity().application as EirApplication).fhirEngine,
-        PatientItemMapper
+        PatientItemMapper(requireContext())
       )
     return ViewModelProvider(
       requireActivity(),

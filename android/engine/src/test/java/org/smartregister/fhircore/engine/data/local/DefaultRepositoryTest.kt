@@ -33,9 +33,9 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.StringType
 import org.junit.Assert
 import org.junit.Test
-import org.smartregister.fhircore.engine.robolectric.RobolectricTest
 import org.smartregister.fhircore.engine.util.extension.loadImmunizations
 import org.smartregister.fhircore.engine.util.extension.loadRelatedPersons
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class DefaultRepositoryTest : RobolectricTest() {
 

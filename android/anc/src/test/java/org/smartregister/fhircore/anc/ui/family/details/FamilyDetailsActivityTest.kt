@@ -16,7 +16,6 @@
 
 package org.smartregister.fhircore.anc.ui.family.details
 
-import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
@@ -30,16 +29,13 @@ import org.junit.Before
 import org.junit.Test
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
-import org.smartregister.fhircore.anc.activity.ActivityRobolectricTest
 import org.smartregister.fhircore.anc.data.family.model.FamilyMemberItem
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
 import org.smartregister.fhircore.anc.ui.anccare.details.AncDetailsActivity
 import org.smartregister.fhircore.anc.ui.family.form.FamilyQuestionnaireActivity
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [AncApplicationShadow::class])
-class FamilyDetailsActivityTest : ActivityRobolectricTest() {
+class FamilyDetailsActivityTest : RobolectricTest() {
 
   private lateinit var activity: FamilyDetailsActivity
 
@@ -104,9 +100,5 @@ class FamilyDetailsActivityTest : ActivityRobolectricTest() {
       shadowOf(ApplicationProvider.getApplicationContext<Application>()).nextStartedActivity
 
     Assert.assertEquals(expectedIntent.component, actualIntent.component)
-  }
-
-  override fun getActivity(): Activity {
-    return activity
   }
 }

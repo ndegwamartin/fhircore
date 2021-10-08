@@ -21,7 +21,7 @@ import androidx.test.core.app.ApplicationProvider
 import org.hl7.fhir.r4.model.Enumerations
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class RegisterUtilsTest : RobolectricTest() {
 

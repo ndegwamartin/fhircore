@@ -25,7 +25,7 @@ import androidx.test.core.app.ApplicationProvider
 import org.junit.Rule
 import org.junit.Test
 import org.smartregister.fhircore.engine.R
-import org.smartregister.fhircore.engine.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class LoaderViewKtTest : RobolectricTest() {
 

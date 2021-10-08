@@ -16,10 +16,8 @@
 
 package org.smartregister.fhircore.eir.ui.patient.details
 
-import android.app.Activity
 import android.view.MenuInflater
 import android.view.MenuItem
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -30,13 +28,10 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.jupiter.api.DisplayName
 import org.robolectric.Robolectric
-import org.robolectric.annotation.Config
 import org.smartregister.fhircore.eir.R
-import org.smartregister.fhircore.eir.activity.ActivityRobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [EirApplicationShadow::class])
-internal class PatientDetailsActivityTest : ActivityRobolectricTest() {
+internal class PatientDetailsActivityTest : RobolectricTest() {
 
   private lateinit var patientDetailsActivity: PatientDetailsActivity
 
@@ -44,7 +39,6 @@ internal class PatientDetailsActivityTest : ActivityRobolectricTest() {
 
   @Before
   fun setUp() {
-    clearAllMocks()
     patientDetailsActivity =
       Robolectric.buildActivity(PatientDetailsActivity::class.java, null).create().get()
     patientDetailsActivitySpy = spyk(objToCopy = patientDetailsActivity)
@@ -75,9 +69,5 @@ internal class PatientDetailsActivityTest : ActivityRobolectricTest() {
     every { menuItem.itemId } returns R.id.patient_profile_edit
     every { patientDetailsActivitySpy.startActivity(any()) } just runs
     Assert.assertTrue(patientDetailsActivitySpy.onOptionsItemSelected(menuItem))
-  }
-
-  override fun getActivity(): Activity {
-    return patientDetailsActivity
   }
 }

@@ -30,7 +30,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.smartregister.fhircore.eir.coroutine.CoroutineTestRule
+import org.smartregister.fhircore.sharedtest.rule.CoroutineTestRule
 
 @ExperimentalCoroutinesApi
 internal class PatientDetailsViewModelTest {

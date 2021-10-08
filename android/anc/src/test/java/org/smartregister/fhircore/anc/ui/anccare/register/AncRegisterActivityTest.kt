@@ -16,7 +16,6 @@
 
 package org.smartregister.fhircore.anc.ui.anccare.register
 
-import android.app.Activity
 import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
@@ -38,23 +37,22 @@ import org.junit.BeforeClass
 import org.junit.Test
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 import org.robolectric.fakes.RoboMenuItem
 import org.robolectric.util.ReflectionHelpers
 import org.smartregister.fhircore.anc.AncApplication
 import org.smartregister.fhircore.anc.R
-import org.smartregister.fhircore.anc.activity.ActivityRobolectricTest
 import org.smartregister.fhircore.anc.data.anc.AncPatientRepository
 import org.smartregister.fhircore.anc.data.family.FamilyRepository
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
-import org.smartregister.fhircore.anc.shadow.FakeKeyStore
 import org.smartregister.fhircore.anc.ui.family.register.FamilyRegisterActivity
+import org.smartregister.fhircore.sharedtest.fake.FakeKeyStore
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [AncApplicationShadow::class])
-internal class AncRegisterActivityTest : ActivityRobolectricTest() {
+internal class AncRegisterActivityTest : RobolectricTest() {
 
   private lateinit var ancRegisterActivity: AncRegisterActivity
+
   private lateinit var ancPatientRepository: AncPatientRepository
+
   private lateinit var familyRepository: FamilyRepository
 
   @Before
@@ -142,10 +140,6 @@ internal class AncRegisterActivityTest : ActivityRobolectricTest() {
 
     assertEquals(1, fragments.size)
     assertEquals(AncRegisterFragment::class.java.simpleName, fragments.first().javaClass.simpleName)
-  }
-
-  override fun getActivity(): Activity {
-    return ancRegisterActivity
   }
 
   companion object {

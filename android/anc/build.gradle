@@ -135,10 +135,9 @@ dependencies {
 
     androidTestImplementation deps.atsl.ext_junit
     androidTestImplementation deps.atsl.espresso
+
+    testImplementation(project(":shared-test"))
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.2'
-
-
-
     testImplementation deps.junit5_api
     testRuntimeOnly deps.junit5_engine
     testRuntimeOnly deps.junit5_engine_vintage

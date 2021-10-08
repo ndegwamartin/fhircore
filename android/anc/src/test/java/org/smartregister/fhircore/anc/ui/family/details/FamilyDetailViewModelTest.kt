@@ -30,7 +30,7 @@ import org.junit.Before
 import org.junit.Test
 import org.smartregister.fhircore.anc.data.family.FamilyDetailRepository
 import org.smartregister.fhircore.anc.data.family.model.FamilyMemberItem
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class FamilyDetailViewModelTest : RobolectricTest() {
 

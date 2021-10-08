@@ -36,7 +36,7 @@ import okhttp3.ResponseBody
 import org.smartregister.fhircore.engine.configuration.app.ApplicationConfiguration
 import org.smartregister.fhircore.engine.data.remote.auth.OAuthService
 import org.smartregister.fhircore.engine.data.remote.model.response.OAuthResponse
-import org.smartregister.fhircore.engine.util.SecureSharedPreference
+import org.smartregister.fhircore.engine.util.SharedPreferenceHelper
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -158,7 +158,7 @@ abstract class AuthenticationService(open val context: Context) {
   }
 
   fun cleanup() {
-    SecureSharedPreference(context).deleteCredentials()
+    SharedPreferenceHelper(context).secureSharedPreference.deleteCredentials()
     context.startActivity(getLogoutUserIntent())
     if (context is Activity) (context as Activity).finish()
   }

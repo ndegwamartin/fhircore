@@ -18,11 +18,13 @@ package org.smartregister.fhircore.quest
 
 import android.content.Context
 import org.smartregister.fhircore.engine.auth.AuthenticationService
+import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 import org.smartregister.fhircore.quest.ui.login.LoginActivity
 
 class QuestAuthenticationService(override val context: Context) : AuthenticationService(context) {
 
-  private val applicationConfiguration = QuestApplication.getContext().applicationConfiguration
+  private val applicationConfiguration =
+    (context.applicationContext as ConfigurableApplication).applicationConfiguration
 
   override fun skipLogin() = BuildConfig.DEBUG && BuildConfig.SKIP_AUTH_CHECK
 

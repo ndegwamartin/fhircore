@@ -33,7 +33,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.smartregister.fhircore.anc.data.anc.model.EncounterItem
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 @ExperimentalCoroutinesApi
 class EncounterRepositoryTest : RobolectricTest() {

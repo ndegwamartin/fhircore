@@ -21,7 +21,8 @@ import org.smartregister.fhircore.eir.ui.login.LoginActivity
 import org.smartregister.fhircore.engine.auth.AuthenticationService
 
 class EirAuthenticationService(override val context: Context) : AuthenticationService(context) {
-  private val applicationConfiguration = EirApplication.getContext().applicationConfiguration
+  private val applicationConfiguration =
+    (context.applicationContext as EirApplication).applicationConfiguration
 
   override fun skipLogin() = BuildConfig.DEBUG && BuildConfig.SKIP_AUTH_CHECK
 

@@ -35,8 +35,8 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import java.util.Date
-import kotlinx.android.synthetic.main.fragment_anc_details.*
 import kotlinx.android.synthetic.main.fragment_anc_details.button_CQLEvaluate
+import kotlinx.android.synthetic.main.fragment_anc_details.button_CQL_Measure_Evaluate
 import kotlinx.android.synthetic.main.fragment_anc_details.textView_CQLResults
 import kotlinx.android.synthetic.main.fragment_anc_details.textView_EvaluateCQLHeader
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,22 +46,19 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.robolectric.Robolectric
-import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
 import org.smartregister.fhircore.anc.R
-import org.smartregister.fhircore.anc.coroutine.CoroutineTestRule
 import org.smartregister.fhircore.anc.data.anc.AncPatientRepository
 import org.smartregister.fhircore.anc.data.anc.model.AncPatientDetailItem
 import org.smartregister.fhircore.anc.data.anc.model.AncPatientItem
 import org.smartregister.fhircore.anc.data.anc.model.CarePlanItem
-import org.smartregister.fhircore.anc.robolectric.FragmentRobolectricTest
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
 import org.smartregister.fhircore.engine.data.remote.fhir.resource.FhirResourceDataSource
 import org.smartregister.fhircore.engine.util.FileUtil
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.rule.CoroutineTestRule
 
 @ExperimentalCoroutinesApi
-@Config(shadows = [AncApplicationShadow::class])
-internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
+internal class AncDetailsFragmentTest : RobolectricTest() {
 
   private lateinit var fhirEngine: FhirEngine
   private lateinit var patientDetailsViewModel: AncDetailsViewModel
@@ -151,14 +148,6 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
     Assert.assertEquals(View.VISIBLE, immunizationsListView?.visibility)
 
     verify(exactly = 1) { carePlanAdapter.submitList(any()) }
-  }
-
-  override fun getFragmentScenario(): FragmentScenario<out Fragment> {
-    return fragmentScenario
-  }
-
-  override fun getFragment(): Fragment {
-    return patientDetailsFragment
   }
 
   @Test
@@ -333,8 +322,8 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
 
   @Test
   fun loadCQLPatientDataTest() {
-    var auxCQLPatientData = "auxCQLPatientData"
-    var patientData = MutableLiveData<String>()
+    val auxCQLPatientData = "auxCQLPatientData"
+    val patientData = MutableLiveData<String>()
     patientData.postValue(auxCQLPatientData)
 
     coroutinesTestRule.runBlockingTest {
@@ -349,8 +338,8 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
 
   @Test
   fun loadMeasureEvaluatePatientDataTest() {
-    var auxCQLPatientData = "auxCQLPatientData"
-    var patientData = MutableLiveData<String>()
+    val auxCQLPatientData = "auxCQLPatientData"
+    val patientData = MutableLiveData<String>()
     patientData.postValue(auxCQLPatientData)
 
     coroutinesTestRule.runBlockingTest {

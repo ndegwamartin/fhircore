@@ -16,13 +16,11 @@
 
 package org.smartregister.fhircore.eir.ui.vaccine
 
-import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import androidx.test.core.app.ApplicationProvider
 import com.google.android.fhir.FhirEngine
 import io.mockk.coEvery
 import io.mockk.every
@@ -47,22 +45,18 @@ import org.junit.Rule
 import org.junit.Test
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.util.ReflectionHelpers
-import org.smartregister.fhircore.eir.activity.ActivityRobolectricTest
-import org.smartregister.fhircore.eir.coroutine.CoroutineTestRule
 import org.smartregister.fhircore.eir.data.model.PatientVaccineSummary
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
-import org.smartregister.fhircore.eir.shadow.ShadowNpmPackageProvider
-import org.smartregister.fhircore.eir.shadow.TestUtils
 import org.smartregister.fhircore.eir.util.RECORD_VACCINE_FORM
 import org.smartregister.fhircore.engine.ui.questionnaire.QuestionnaireActivity
 import org.smartregister.fhircore.engine.util.DateUtils
+import org.smartregister.fhircore.sharedtest.fake.FakePatient
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.rule.CoroutineTestRule
 
-@Config(shadows = [EirApplicationShadow::class, ShadowNpmPackageProvider::class])
 @ExperimentalCoroutinesApi
-class RecordVaccineActivityTest : ActivityRobolectricTest() {
+class RecordVaccineActivityTest : RobolectricTest() {
 
   private lateinit var recordVaccineActivity: RecordVaccineActivity
 
@@ -73,16 +67,9 @@ class RecordVaccineActivityTest : ActivityRobolectricTest() {
   @Before
   fun setUp() {
     val fhirEngine: FhirEngine = mockk()
-    coEvery { fhirEngine.load(Patient::class.java, "test_patient_id") } returns
-      TestUtils.TEST_PATIENT_1
-
+    coEvery { fhirEngine.load(Patient::class.java, "test_patient_id") } returns FakePatient.patient1
     coEvery { fhirEngine.search<Immunization>(any()) } returns listOf()
     coEvery { fhirEngine.load(Questionnaire::class.java, any()) } returns Questionnaire()
-    ReflectionHelpers.setField(
-      ApplicationProvider.getApplicationContext(),
-      "fhirEngine\$delegate",
-      lazy { fhirEngine }
-    )
 
     val intent =
       Intent().apply {
@@ -208,9 +195,5 @@ class RecordVaccineActivityTest : ActivityRobolectricTest() {
           }
         )
     }
-  }
-
-  override fun getActivity(): Activity {
-    return recordVaccineActivity
   }
 }

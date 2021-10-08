@@ -38,7 +38,6 @@ import org.smartregister.fhircore.engine.data.remote.shared.ResponseCallback
 import org.smartregister.fhircore.engine.data.remote.shared.ResponseHandler
 import org.smartregister.fhircore.engine.util.DefaultDispatcherProvider
 import org.smartregister.fhircore.engine.util.DispatcherProvider
-import org.smartregister.fhircore.engine.util.SharedPreferencesHelper
 import org.smartregister.fhircore.engine.util.USER_QUESTIONNAIRE_PUBLISHER_SHARED_PREFERENCE_KEY
 import org.smartregister.fhircore.engine.util.extension.decodeJson
 import retrofit2.Call
@@ -54,8 +53,7 @@ class LoginViewModel(
 
   private val accountManager = AccountManager.get(application)
 
-  val sharedPreferences =
-    SharedPreferencesHelper.init(getApplication<Application>().applicationContext)
+  val sharedPreferences = (application as ConfigurableApplication).sharedPreferenceHelper
 
   val responseBodyHandler =
     object : ResponseHandler<ResponseBody> {
@@ -88,7 +86,7 @@ class LoginViewModel(
   }
 
   private val secureSharedPreference =
-    (application as ConfigurableApplication).secureSharedPreference
+    (application as ConfigurableApplication).sharedPreferenceHelper.secureSharedPreference
 
   val oauthResponseHandler =
     object : ResponseHandler<OAuthResponse> {

@@ -27,7 +27,6 @@ import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -47,15 +46,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.robolectric.Robolectric
-import org.robolectric.annotation.Config
 import org.smartregister.fhircore.eir.R
-import org.smartregister.fhircore.eir.coroutine.CoroutineTestRule
-import org.smartregister.fhircore.eir.robolectric.FragmentRobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.rule.CoroutineTestRule
 
 @ExperimentalCoroutinesApi
-@Config(shadows = [EirApplicationShadow::class])
-internal class PatientDetailsFragmentTest : FragmentRobolectricTest() {
+internal class PatientDetailsFragmentTest : RobolectricTest() {
 
   private lateinit var patientDetailsViewModel: PatientDetailsViewModel
 
@@ -71,7 +67,6 @@ internal class PatientDetailsFragmentTest : FragmentRobolectricTest() {
 
   @Before
   fun setUp() {
-    clearAllMocks()
     patientDetailsViewModel =
       spyk(
         PatientDetailsViewModel(
@@ -284,13 +279,5 @@ internal class PatientDetailsFragmentTest : FragmentRobolectricTest() {
         occurrence = DateTimeType("2021-07-30")
       }
     return listOf(immunization1, immunization2, immunization3)
-  }
-
-  override fun getFragmentScenario(): FragmentScenario<out Fragment> {
-    return fragmentScenario
-  }
-
-  override fun getFragment(): Fragment {
-    return patientDetailsFragment
   }
 }

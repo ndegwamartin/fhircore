@@ -30,8 +30,7 @@ import org.smartregister.fhircore.engine.configuration.app.ApplicationConfigurat
 import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 import org.smartregister.fhircore.engine.configuration.app.applicationConfigurationOf
 import org.smartregister.fhircore.engine.util.DefaultDispatcherProvider
-import org.smartregister.fhircore.engine.util.SecureSharedPreference
-import org.smartregister.fhircore.engine.util.SharedPreferencesHelper
+import org.smartregister.fhircore.engine.util.SharedPreferenceHelper
 import org.smartregister.fhircore.engine.util.extension.initializeWorkerContext
 import org.smartregister.fhircore.engine.util.extension.runPeriodicSync
 import timber.log.Timber
@@ -40,12 +39,15 @@ class EirApplication : Application(), ConfigurableApplication {
 
   private val defaultDispatcherProvider = DefaultDispatcherProvider
 
+  override lateinit var syncJob: SyncJob
+
   override lateinit var workerContextProvider: SimpleWorkerContext
 
   override lateinit var applicationConfiguration: ApplicationConfiguration
 
-  override val authenticationService: AuthenticationService
-    get() = EirAuthenticationService(applicationContext)
+  override lateinit var authenticationService: AuthenticationService
+
+  override lateinit var sharedPreferenceHelper: SharedPreferenceHelper
 
   override val fhirEngine: FhirEngine by lazy { FhirEngineProvider.getInstance(this) }
 
@@ -61,8 +63,6 @@ class EirApplication : Application(), ConfigurableApplication {
 
   override fun onCreate() {
     super.onCreate()
-    SharedPreferencesHelper.init(this)
-    eirApplication = this
     configureApplication(
       applicationConfigurationOf(
         oauthServerBaseUrl = BuildConfig.OAUTH_BASE_URL,
@@ -72,6 +72,10 @@ class EirApplication : Application(), ConfigurableApplication {
         languages = listOf("en", "sw")
       )
     )
+
+    sharedPreferenceHelper = SharedPreferenceHelper(this)
+    authenticationService = EirAuthenticationService(this)
+    syncJob = Sync.basicSyncJob(this)
 
     if (BuildConfig.DEBUG) {
       Timber.plant(Timber.DebugTree())
@@ -84,22 +88,9 @@ class EirApplication : Application(), ConfigurableApplication {
     schedulePeriodicSync()
   }
 
-  companion object {
-
-    private lateinit var eirApplication: EirApplication
-
-    fun getContext() = eirApplication
-  }
-
-  override val syncJob: SyncJob
-    get() = Sync.basicSyncJob(getContext())
-
   override fun schedulePeriodicSync() {
     this.runPeriodicSync<EirFhirSyncWorker>()
   }
-
-  override val secureSharedPreference: SecureSharedPreference
-    get() = SecureSharedPreference(applicationContext)
 
   override fun configureApplication(applicationConfiguration: ApplicationConfiguration) {
     this.applicationConfiguration = applicationConfiguration

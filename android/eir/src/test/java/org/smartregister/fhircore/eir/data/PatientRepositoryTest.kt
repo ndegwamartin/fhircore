@@ -16,6 +16,7 @@
 
 package org.smartregister.fhircore.eir.data
 
+import androidx.test.core.app.ApplicationProvider
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.Search
 import io.mockk.coEvery
@@ -38,16 +39,14 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.robolectric.annotation.Config
 import org.smartregister.fhircore.eir.data.model.VaccineStatus
-import org.smartregister.fhircore.eir.robolectric.RobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
 import org.smartregister.fhircore.eir.ui.patient.register.PatientItemMapper
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [EirApplicationShadow::class])
 class PatientRepositoryTest : RobolectricTest() {
 
   private lateinit var patientRepository: PatientRepository
+
   private lateinit var fhirEngine: FhirEngine
 
   @Before
@@ -66,7 +65,8 @@ class PatientRepositoryTest : RobolectricTest() {
         }
       }
 
-    patientRepository = PatientRepository(fhirEngine, PatientItemMapper)
+    patientRepository =
+      PatientRepository(fhirEngine, PatientItemMapper(ApplicationProvider.getApplicationContext()))
   }
 
   @Test

@@ -17,16 +17,29 @@
 package org.smartregister.fhircore.engine.ui.base
 
 import android.content.Context
+import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import java.util.Locale
-import org.smartregister.fhircore.engine.util.SharedPreferencesHelper
+import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
+import org.smartregister.fhircore.engine.util.SHARED_PREFERENCE_LANG
+import org.smartregister.fhircore.engine.util.SharedPreferenceHelper
+import org.smartregister.fhircore.engine.util.extension.assertIsConfigurable
 import org.smartregister.fhircore.engine.util.extension.setAppLocale
 
 abstract class BaseMultiLanguageActivity : AppCompatActivity() {
 
+  lateinit var sharedPreferenceHelper: SharedPreferenceHelper
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    application.assertIsConfigurable()
+  }
+
   override fun attachBaseContext(baseContext: Context) {
+    sharedPreferenceHelper =
+      (baseContext.applicationContext as ConfigurableApplication).sharedPreferenceHelper
     val lang =
-      SharedPreferencesHelper.read(SharedPreferencesHelper.LANG, Locale.ENGLISH.toLanguageTag())
+      sharedPreferenceHelper.read(SHARED_PREFERENCE_LANG, Locale.ENGLISH.toLanguageTag())
         ?: Locale.ENGLISH.toLanguageTag()
     baseContext.setAppLocale(lang).run {
       super.attachBaseContext(baseContext)

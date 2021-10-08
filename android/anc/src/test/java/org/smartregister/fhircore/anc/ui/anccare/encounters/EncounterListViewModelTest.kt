@@ -23,7 +23,7 @@ import org.junit.Before
 import org.junit.Test
 import org.robolectric.Robolectric
 import org.smartregister.fhircore.anc.data.EncounterRepository
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class EncounterListViewModelTest : RobolectricTest() {
 

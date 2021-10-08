@@ -103,7 +103,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation "androidx.cardview:cardview:1.0.0"
-    implementation 'joda-time:joda-time:2.10.6'
     implementation 'androidx.paging:paging-runtime-ktx:3.0.1'
 
     //CQL
@@ -180,6 +179,9 @@ dependencies {
     api "com.squareup.okhttp3:okhttp:$okhttpVersion"
     api "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
 
+    api 'joda-time:joda-time:2.10.6'
+
+    testImplementation(project(":shared-test"))
     testImplementation deps.junit5_api
     testRuntimeOnly deps.junit5_engine
     testRuntimeOnly deps.junit5_engine_vintage

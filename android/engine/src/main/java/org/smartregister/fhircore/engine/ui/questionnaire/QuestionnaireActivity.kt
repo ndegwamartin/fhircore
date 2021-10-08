@@ -36,9 +36,9 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.smartregister.fhircore.engine.R
 import org.smartregister.fhircore.engine.ui.base.BaseMultiLanguageActivity
+import org.smartregister.fhircore.engine.util.AssetUtil
 import org.smartregister.fhircore.engine.util.DefaultDispatcherProvider
 import org.smartregister.fhircore.engine.util.DispatcherProvider
-import org.smartregister.fhircore.engine.util.FormConfigUtil
 import org.smartregister.fhircore.engine.util.extension.assertIsConfigurable
 import org.smartregister.fhircore.engine.util.extension.createFactory
 import org.smartregister.fhircore.engine.util.extension.showToast
@@ -82,7 +82,7 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
     lifecycleScope.launchWhenCreated {
       val loadConfig =
         withContext(dispatcherProvider.io()) {
-          FormConfigUtil.loadConfig<List<QuestionnaireConfig>>(
+          AssetUtil.loadAsset<List<QuestionnaireConfig>>(
             FORM_CONFIGURATIONS,
             this@QuestionnaireActivity
           )

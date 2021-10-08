@@ -19,3 +19,8 @@ package org.smartregister.fhircore.engine.util
 const val LAST_SYNC_TIMESTAMP = "last_sync_timestamp"
 const val USER_SHARED_PREFERENCE_KEY = "USER"
 const val USER_QUESTIONNAIRE_PUBLISHER_SHARED_PREFERENCE_KEY = "USER_QUESTIONNAIRE_PUBLISHER"
+const val SECURE_STORAGE_FILE_NAME = "fhircore_secure_preferences"
+const val KEY_LATEST_CREDENTIALS_PREFERENCE = "LATEST_SUCCESSFUL_SESSION_CREDENTIALS"
+const val KEY_LATEST_SESSION_TOKEN_PREFERENCE = "LATEST_SUCCESSFUL_SESSION_TOKEN"
+const val SHARED_PREFERENCE_LANG = "shared_pref_lang"
+const val PREFS_NAME = "params"

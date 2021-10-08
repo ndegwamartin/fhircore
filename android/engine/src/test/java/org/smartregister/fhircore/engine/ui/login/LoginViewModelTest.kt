@@ -31,9 +31,9 @@ import org.junit.Test
 import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 import org.smartregister.fhircore.engine.configuration.view.loginViewConfigurationOf
 import org.smartregister.fhircore.engine.data.remote.model.response.UserResponse
-import org.smartregister.fhircore.engine.robolectric.RobolectricTest
 import org.smartregister.fhircore.engine.util.USER_QUESTIONNAIRE_PUBLISHER_SHARED_PREFERENCE_KEY
 import org.smartregister.fhircore.engine.util.extension.encodeJson
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 import retrofit2.Response
 
 internal class LoginViewModelTest : RobolectricTest() {

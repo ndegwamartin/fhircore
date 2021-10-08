@@ -16,7 +16,6 @@
 
 package org.smartregister.fhircore.anc.ui.family
 
-import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
@@ -46,13 +45,9 @@ import org.junit.BeforeClass
 import org.junit.Test
 import org.robolectric.Robolectric
 import org.robolectric.Shadows
-import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.util.ReflectionHelpers
-import org.smartregister.fhircore.anc.activity.ActivityRobolectricTest
 import org.smartregister.fhircore.anc.data.family.FamilyRepository
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
-import org.smartregister.fhircore.anc.shadow.FakeKeyStore
 import org.smartregister.fhircore.anc.ui.family.form.FamilyFormConstants
 import org.smartregister.fhircore.anc.ui.family.form.FamilyQuestionnaireActivity
 import org.smartregister.fhircore.anc.ui.family.form.FamilyQuestionnaireActivity.Companion.QUESTIONNAIRE_CALLING_ACTIVITY
@@ -60,9 +55,10 @@ import org.smartregister.fhircore.anc.ui.family.register.FamilyRegisterActivity
 import org.smartregister.fhircore.engine.ui.questionnaire.QuestionnaireActivity.Companion.QUESTIONNAIRE_ARG_FORM
 import org.smartregister.fhircore.engine.ui.questionnaire.QuestionnaireActivity.Companion.QUESTIONNAIRE_ARG_PATIENT_KEY
 import org.smartregister.fhircore.engine.ui.questionnaire.QuestionnaireConfig
+import org.smartregister.fhircore.sharedtest.fake.FakeKeyStore
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [AncApplicationShadow::class])
-internal class FamilyQuestionnaireActivityTest : ActivityRobolectricTest() {
+internal class FamilyQuestionnaireActivityTest : RobolectricTest() {
 
   private lateinit var familyQuestionnaireActivity: FamilyQuestionnaireActivity
 
@@ -221,10 +217,6 @@ internal class FamilyQuestionnaireActivityTest : ActivityRobolectricTest() {
     val dialog = Shadows.shadowOf(ShadowAlertDialog.getLatestDialog())
 
     assertNotNull(dialog)
-  }
-
-  override fun getActivity(): Activity {
-    return familyQuestionnaireActivity
   }
 
   companion object {

@@ -16,7 +16,6 @@
 
 package org.smartregister.fhircore.anc.ui.anccare.encounters
 
-import android.app.Activity
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -25,13 +24,10 @@ import io.mockk.verify
 import org.junit.Before
 import org.junit.Test
 import org.robolectric.Robolectric
-import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
-import org.smartregister.fhircore.anc.activity.ActivityRobolectricTest
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [AncApplicationShadow::class])
-class EncounterListActivityTest : ActivityRobolectricTest() {
+class EncounterListActivityTest : RobolectricTest() {
 
   private lateinit var activity: EncounterListActivity
 
@@ -57,9 +53,5 @@ class EncounterListActivityTest : ActivityRobolectricTest() {
     ReflectionHelpers.callInstanceMethod<Any>(spyActivity, "handleBackClicked")
 
     verify(exactly = 1) { spyActivity.finish() }
-  }
-
-  override fun getActivity(): Activity {
-    return activity
   }
 }

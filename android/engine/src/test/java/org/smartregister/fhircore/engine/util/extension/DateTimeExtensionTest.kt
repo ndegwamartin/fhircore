@@ -20,7 +20,7 @@ import org.hl7.fhir.r4.model.DateType
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Test
-import org.smartregister.fhircore.engine.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 @Ignore("Tests passing locally but failing assertion on ci")
 class DateTimeExtensionTest : RobolectricTest() {

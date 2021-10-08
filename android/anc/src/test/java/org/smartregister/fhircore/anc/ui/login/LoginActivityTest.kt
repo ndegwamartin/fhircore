@@ -16,7 +16,6 @@
 
 package org.smartregister.fhircore.anc.ui.login
 
-import android.app.Activity
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert
@@ -24,14 +23,11 @@ import org.junit.Before
 import org.junit.Test
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 import org.smartregister.fhircore.anc.AncApplication
-import org.smartregister.fhircore.anc.activity.ActivityRobolectricTest
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
 import org.smartregister.fhircore.anc.ui.family.register.FamilyRegisterActivity
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [AncApplicationShadow::class])
-class LoginActivityTest : ActivityRobolectricTest() {
+class LoginActivityTest : RobolectricTest() {
 
   private lateinit var loginActivity: LoginActivity
 
@@ -49,9 +45,5 @@ class LoginActivityTest : ActivityRobolectricTest() {
       shadowOf(ApplicationProvider.getApplicationContext<AncApplication>()).nextStartedActivity
 
     Assert.assertEquals(expectedIntent.component, actualIntent.component)
-  }
-
-  override fun getActivity(): Activity {
-    return loginActivity
   }
 }

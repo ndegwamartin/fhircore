@@ -17,6 +17,7 @@
 package org.smartregister.fhircore.anc.data.anc
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ApplicationProvider
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.parser.IParser
 import com.google.android.fhir.FhirEngine
@@ -25,6 +26,7 @@ import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
@@ -54,10 +56,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.smartregister.fhircore.anc.AncApplication
 import org.smartregister.fhircore.anc.data.anc.model.AncPatientItem
 import org.smartregister.fhircore.anc.data.anc.model.AncVisitStatus
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
 import org.smartregister.fhircore.anc.ui.anccare.register.AncItemMapper
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class AncPatientRepositoryTest : RobolectricTest() {
   private lateinit var repository: AncPatientRepository
@@ -69,6 +72,8 @@ class AncPatientRepositoryTest : RobolectricTest() {
   fun setUp() {
     fhirEngine = spyk()
     repository = spyk(AncPatientRepository(fhirEngine, AncItemMapper))
+    mockkObject(AncApplication)
+    every { AncApplication.getContext() } returns ApplicationProvider.getApplicationContext()
   }
 
   @Test

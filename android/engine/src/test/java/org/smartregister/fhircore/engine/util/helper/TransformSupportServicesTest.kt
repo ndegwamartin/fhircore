@@ -22,7 +22,7 @@ import org.hl7.fhir.r4.model.RiskAssessment
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.smartregister.fhircore.engine.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 /** Created by Ephraim Kigamba - nek.eam@gmail.com on 24-09-2021. */
 class TransformSupportServicesTest : RobolectricTest() {

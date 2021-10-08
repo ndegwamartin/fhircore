@@ -22,7 +22,7 @@ import org.hl7.fhir.r4.context.SimpleWorkerContext
 import org.hl7.fhir.r4.model.ResourceType
 import org.smartregister.fhircore.engine.auth.AuthenticationService
 import org.smartregister.fhircore.engine.sync.SyncBroadcaster
-import org.smartregister.fhircore.engine.util.SecureSharedPreference
+import org.smartregister.fhircore.engine.util.SharedPreferenceHelper
 
 /**
  * An interface that provides the application configurations. Every FHIR based application is
@@ -34,7 +34,7 @@ import org.smartregister.fhircore.engine.util.SecureSharedPreference
  * @property authenticationService Set singleton instance of [AuthenticationService] used for
  * authenticating users
  * @property fhirEngine Set [FhirEngine]
- * @property secureSharedPreference Set singleton of [SecureSharedPreference] used to access
+ * @property sharedPreferenceHelper Set singleton of [SharedPreferenceHelper] used to access
  * encrypted shared preference data
  * @property resourceSyncParams Set [FhirEngine] resource sync params needed for syncing data from
  * the server
@@ -51,7 +51,7 @@ interface ConfigurableApplication {
 
   val fhirEngine: FhirEngine
 
-  val secureSharedPreference: SecureSharedPreference
+  val sharedPreferenceHelper: SharedPreferenceHelper
 
   val resourceSyncParams: Map<ResourceType, Map<String, String>>
 

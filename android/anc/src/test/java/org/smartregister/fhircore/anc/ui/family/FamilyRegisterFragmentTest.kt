@@ -27,18 +27,14 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
 import org.smartregister.fhircore.anc.data.family.model.FamilyItem
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
-import org.smartregister.fhircore.anc.shadow.FakeKeyStore
 import org.smartregister.fhircore.anc.ui.family.register.FamilyRegisterActivity
 import org.smartregister.fhircore.anc.ui.family.register.FamilyRegisterFragment
 import org.smartregister.fhircore.engine.ui.register.model.RegisterFilterType
-import org.smartregister.fhircore.engine.util.SecureSharedPreference
+import org.smartregister.fhircore.engine.util.SharedPreferenceHelper
+import org.smartregister.fhircore.sharedtest.fake.FakeKeyStore
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(
-  shadows =
-    [AncApplicationShadow::class, FamilyRegisterFragmentTest.SecureSharedPreferenceShadow::class]
-)
+@Config(shadows = [FamilyRegisterFragmentTest.SecureSharedPreferenceShadow::class])
 class FamilyRegisterFragmentTest : RobolectricTest() {
 
   private lateinit var registerFragment: FamilyRegisterFragment
@@ -80,7 +76,7 @@ class FamilyRegisterFragmentTest : RobolectricTest() {
     }
   }
 
-  @Implements(SecureSharedPreference::class)
+  @Implements(SharedPreferenceHelper::class)
   class SecureSharedPreferenceShadow : Shadows() {
 
     @Implementation

@@ -35,6 +35,7 @@ import androidx.core.view.GravityCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.FhirEngine
@@ -61,7 +62,7 @@ import org.smartregister.fhircore.engine.ui.register.model.RegisterFilterType
 import org.smartregister.fhircore.engine.ui.register.model.SideMenuOption
 import org.smartregister.fhircore.engine.util.DateUtils
 import org.smartregister.fhircore.engine.util.LAST_SYNC_TIMESTAMP
-import org.smartregister.fhircore.engine.util.SharedPreferencesHelper
+import org.smartregister.fhircore.engine.util.SHARED_PREFERENCE_LANG
 import org.smartregister.fhircore.engine.util.extension.DrawablePosition
 import org.smartregister.fhircore.engine.util.extension.addOnDrawableClickListener
 import org.smartregister.fhircore.engine.util.extension.asString
@@ -105,7 +106,8 @@ abstract class BaseRegisterActivity :
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     application.assertIsConfigurable()
-    val syncBroadcaster = (application as ConfigurableApplication).syncBroadcaster
+    sharedPreferenceHelper = configurableApplication().sharedPreferenceHelper
+    val syncBroadcaster = configurableApplication().syncBroadcaster
     syncBroadcaster.registerSyncListener(this)
 
     registerViewModel =
@@ -123,13 +125,10 @@ abstract class BaseRegisterActivity :
 
     registerViewModel.registerViewConfiguration.observe(this, this::setupConfigurableViews)
 
-    registerViewModel.lastSyncTimestamp.observe(
-      this,
-      {
-        registerActivityBinding.btnRegisterNewClient.isEnabled = !it.isNullOrEmpty()
-        registerActivityBinding.tvLastSyncTimestamp.text = it?.formatSyncDate() ?: ""
-      }
-    )
+    registerViewModel.lastSyncTimestamp.observe(this) {
+      registerActivityBinding.btnRegisterNewClient.isEnabled = !it.isNullOrEmpty()
+      registerActivityBinding.tvLastSyncTimestamp.text = it?.formatSyncDate() ?: ""
+    }
 
     registerViewModel.run {
       loadLanguages()
@@ -171,7 +170,7 @@ abstract class BaseRegisterActivity :
       is State.Glitch -> {
         progressSync.hide()
         val lastSyncTimestamp =
-          SharedPreferencesHelper.read(LAST_SYNC_TIMESTAMP, getString(R.string.syncing_retry))
+          sharedPreferenceHelper.read(LAST_SYNC_TIMESTAMP, getString(R.string.syncing_retry))
         tvLastSyncTimestamp.text = lastSyncTimestamp?.formatSyncDate() ?: ""
         containerProgressSync.apply {
           background = this.getDrawable(R.drawable.ic_sync)
@@ -208,12 +207,13 @@ abstract class BaseRegisterActivity :
       menu.findItem(R.id.menu_item_logout).title =
         getString(
           R.string.logout_user,
-          configurableApplication().secureSharedPreference.retrieveSessionUsername()
+          sharedPreferenceHelper.secureSharedPreference.retrieveSessionUsername()
         )
     }
 
     // Setup view pager
-    registerPagerAdapter = RegisterPagerAdapter(this, supportedFragments = supportedFragments())
+    registerPagerAdapter =
+      RegisterPagerAdapter(this as FragmentActivity, supportedFragments = supportedFragments())
     registerActivityBinding.listPager.adapter = registerPagerAdapter
 
     setupSearchView()
@@ -462,7 +462,7 @@ abstract class BaseRegisterActivity :
   private fun refreshSelectedLanguage(language: Language, context: Activity) {
     updateLanguage(language)
     context.setAppLocale(language.tag)
-    SharedPreferencesHelper.write(SharedPreferencesHelper.LANG, language.tag)
+    sharedPreferenceHelper.write(SHARED_PREFERENCE_LANG, language.tag)
     context.refresh()
   }
 

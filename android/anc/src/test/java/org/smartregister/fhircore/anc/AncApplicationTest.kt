@@ -22,18 +22,18 @@ import androidx.work.WorkManager
 import org.hl7.fhir.r4.model.ResourceType
 import org.junit.Assert
 import org.junit.Test
-import org.robolectric.annotation.Config
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
 import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [AncApplicationShadow::class])
 class AncApplicationTest : RobolectricTest() {
+
+  private val applicationContext: AncApplication = ApplicationProvider.getApplicationContext()
 
   @Test
   fun testConstructFhirEngineShouldReturnNonNull() {
-    WorkManager.initialize(AncApplication.getContext(), Configuration.Builder().build())
-    Assert.assertNotNull(AncApplication.getContext().fhirEngine)
+
+    WorkManager.initialize(applicationContext, Configuration.Builder().build())
+    Assert.assertNotNull(applicationContext.fhirEngine)
   }
   @Test
   fun testThatApplicationIsInstanceOfConfigurableApplication() {

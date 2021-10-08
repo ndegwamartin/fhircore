@@ -19,9 +19,12 @@ package org.smartregister.fhircore.anc
 import android.content.Context
 import org.smartregister.fhircore.anc.ui.login.LoginActivity
 import org.smartregister.fhircore.engine.auth.AuthenticationService
+import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 
 class AncAuthenticationService(override val context: Context) : AuthenticationService(context) {
-  private val applicationConfiguration = AncApplication.getContext().applicationConfiguration
+
+  private val applicationConfiguration =
+    (context.applicationContext as ConfigurableApplication).applicationConfiguration
 
   override fun skipLogin() = BuildConfig.DEBUG && BuildConfig.SKIP_AUTH_CHECK
 

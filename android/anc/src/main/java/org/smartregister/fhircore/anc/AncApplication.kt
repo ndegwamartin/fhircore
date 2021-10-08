@@ -30,30 +30,24 @@ import org.smartregister.fhircore.engine.configuration.app.ApplicationConfigurat
 import org.smartregister.fhircore.engine.configuration.app.ConfigurableApplication
 import org.smartregister.fhircore.engine.configuration.app.applicationConfigurationOf
 import org.smartregister.fhircore.engine.util.DefaultDispatcherProvider
-import org.smartregister.fhircore.engine.util.SecureSharedPreference
-import org.smartregister.fhircore.engine.util.SharedPreferencesHelper
+import org.smartregister.fhircore.engine.util.SharedPreferenceHelper
 import org.smartregister.fhircore.engine.util.extension.initializeWorkerContext
 import org.smartregister.fhircore.engine.util.extension.runPeriodicSync
 import timber.log.Timber
 
 class AncApplication : Application(), ConfigurableApplication {
 
-  override val syncJob: SyncJob
-    get() = Sync.basicSyncJob(getContext())
+  override val fhirEngine: FhirEngine by lazy { FhirEngineProvider.getInstance(this) }
 
-  private val defaultDispatcherProvider = DefaultDispatcherProvider
+  override lateinit var syncJob: SyncJob
 
   override lateinit var workerContextProvider: SimpleWorkerContext
 
   override lateinit var applicationConfiguration: ApplicationConfiguration
 
-  override val authenticationService: AuthenticationService
-    get() = AncAuthenticationService(applicationContext)
+  override lateinit var authenticationService: AuthenticationService
 
-  override val fhirEngine: FhirEngine by lazy { FhirEngineProvider.getInstance(this) }
-
-  override val secureSharedPreference: SecureSharedPreference
-    get() = SecureSharedPreference(applicationContext)
+  override lateinit var sharedPreferenceHelper: SharedPreferenceHelper
 
   override val resourceSyncParams: Map<ResourceType, Map<String, String>>
     get() =
@@ -63,6 +57,8 @@ class AncApplication : Application(), ConfigurableApplication {
         ResourceType.CarePlan to mapOf(),
         ResourceType.Condition to mapOf(),
       )
+
+  private val defaultDispatcherProvider = DefaultDispatcherProvider
 
   override fun configureApplication(applicationConfiguration: ApplicationConfiguration) {
     this.applicationConfiguration = applicationConfiguration
@@ -74,7 +70,6 @@ class AncApplication : Application(), ConfigurableApplication {
 
   override fun onCreate() {
     super.onCreate()
-    SharedPreferencesHelper.init(this)
     ancApplication = this
     configureApplication(
       applicationConfigurationOf(
@@ -85,6 +80,10 @@ class AncApplication : Application(), ConfigurableApplication {
         languages = listOf("en", "sw")
       )
     )
+
+    syncJob = Sync.basicSyncJob(this)
+    authenticationService = AncAuthenticationService(this)
+    sharedPreferenceHelper = SharedPreferenceHelper(this)
 
     if (BuildConfig.DEBUG) {
       Timber.plant(Timber.DebugTree())

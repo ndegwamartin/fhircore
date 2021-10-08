@@ -50,7 +50,7 @@ class RecordVaccineActivity : QuestionnaireActivity() {
             questionnaireConfig,
             PatientRepository(
               (application as ConfigurableApplication).fhirEngine,
-              PatientItemMapper
+              PatientItemMapper(this)
             )
           )
           .createFactory()

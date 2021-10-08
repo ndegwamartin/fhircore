@@ -32,7 +32,7 @@ import org.smartregister.fhircore.engine.ui.register.model.RegisterFilterType
 import org.smartregister.fhircore.engine.util.DefaultDispatcherProvider
 import org.smartregister.fhircore.engine.util.DispatcherProvider
 import org.smartregister.fhircore.engine.util.LAST_SYNC_TIMESTAMP
-import org.smartregister.fhircore.engine.util.SharedPreferencesHelper
+import org.smartregister.fhircore.engine.util.SHARED_PREFERENCE_LANG
 import org.smartregister.fhircore.engine.util.extension.runOneTimeSync
 import timber.log.Timber
 
@@ -47,8 +47,9 @@ class RegisterViewModel(
   val dispatcher: DispatcherProvider = DefaultDispatcherProvider
 ) : AndroidViewModel(application) {
 
-  private val _lastSyncTimestamp =
-    MutableLiveData(SharedPreferencesHelper.read(LAST_SYNC_TIMESTAMP, ""))
+  private val sharedPreference = (application as ConfigurableApplication).sharedPreferenceHelper
+
+  private val _lastSyncTimestamp = MutableLiveData(sharedPreference.read(LAST_SYNC_TIMESTAMP, ""))
   val lastSyncTimestamp
     get() = _lastSyncTimestamp
 
@@ -69,7 +70,7 @@ class RegisterViewModel(
 
   var selectedLanguage =
     MutableLiveData(
-      SharedPreferencesHelper.read(SharedPreferencesHelper.LANG, Locale.ENGLISH.toLanguageTag())
+      sharedPreference.read(SHARED_PREFERENCE_LANG, Locale.ENGLISH.toLanguageTag())
         ?: Locale.ENGLISH.toLanguageTag()
     )
 
@@ -111,7 +112,7 @@ class RegisterViewModel(
 
   fun setLastSyncTimestamp(lastSyncTimestamp: String) {
     if (lastSyncTimestamp.isNotEmpty()) {
-      SharedPreferencesHelper.write(LAST_SYNC_TIMESTAMP, lastSyncTimestamp)
+      sharedPreference.write(LAST_SYNC_TIMESTAMP, lastSyncTimestamp)
     }
     _lastSyncTimestamp.value = lastSyncTimestamp
   }

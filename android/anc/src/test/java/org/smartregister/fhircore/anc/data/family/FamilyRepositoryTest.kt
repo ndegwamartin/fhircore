@@ -18,7 +18,6 @@ package org.smartregister.fhircore.anc.data.family
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.search.search
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
@@ -34,18 +33,17 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.StringType
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.robolectric.util.ReflectionHelpers
 import org.smartregister.fhircore.anc.data.anc.AncPatientRepository
-import org.smartregister.fhircore.anc.robolectric.RobolectricTest
 import org.smartregister.fhircore.anc.sdk.ResourceMapperExtended
 import org.smartregister.fhircore.anc.ui.family.register.FamilyItemMapper
 import org.smartregister.fhircore.anc.util.RegisterConfiguration
 import org.smartregister.fhircore.anc.util.SearchFilter
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
 class FamilyRepositoryTest : RobolectricTest() {
 
@@ -80,11 +78,11 @@ class FamilyRepositoryTest : RobolectricTest() {
     runBlocking {
       val families = repository.loadData("", 0, true)
 
-      Assert.assertEquals("Given1 Family1", families[0].name)
-      Assert.assertEquals("1111", families[0].id)
+      assertEquals("Given1 Family1", families[0].name)
+      assertEquals("1111", families[0].id)
 
-      Assert.assertEquals("Given2 Family2", families[1].name)
-      Assert.assertEquals("2222", families[1].id)
+      assertEquals("Given2 Family2", families[1].name)
+      assertEquals("2222", families[1].id)
     }
   }
 

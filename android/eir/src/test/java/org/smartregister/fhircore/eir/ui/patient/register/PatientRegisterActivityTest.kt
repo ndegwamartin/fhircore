@@ -16,7 +16,6 @@
 
 package org.smartregister.fhircore.eir.ui.patient.register
 
-import android.app.Activity
 import androidx.core.content.ContextCompat
 import org.junit.Assert
 import org.junit.Before
@@ -24,16 +23,12 @@ import org.junit.BeforeClass
 import org.junit.Test
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 import org.robolectric.fakes.RoboMenuItem
 import org.smartregister.fhircore.eir.R
-import org.smartregister.fhircore.eir.activity.ActivityRobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
-import org.smartregister.fhircore.eir.shadow.FakeKeyStore
-import org.smartregister.fhircore.eir.shadow.ShadowNpmPackageProvider
+import org.smartregister.fhircore.sharedtest.fake.FakeKeyStore
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [EirApplicationShadow::class, ShadowNpmPackageProvider::class])
-class PatientRegisterActivityTest : ActivityRobolectricTest() {
+class PatientRegisterActivityTest : RobolectricTest() {
 
   private lateinit var patientRegisterActivity: PatientRegisterActivity
 
@@ -74,10 +69,6 @@ class PatientRegisterActivityTest : ActivityRobolectricTest() {
       PatientRegisterFragment::class.java.simpleName,
       fragments.first().javaClass.simpleName
     )
-  }
-
-  override fun getActivity(): Activity {
-    return patientRegisterActivity
   }
 
   companion object {

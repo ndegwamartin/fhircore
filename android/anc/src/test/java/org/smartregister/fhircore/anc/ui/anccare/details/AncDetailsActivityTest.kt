@@ -16,7 +16,6 @@
 
 package org.smartregister.fhircore.anc.ui.anccare.details
 
-import android.app.Activity
 import android.content.Intent
 import android.view.MenuInflater
 import androidx.test.core.app.ApplicationProvider
@@ -29,17 +28,14 @@ import org.junit.Test
 import org.junit.jupiter.api.DisplayName
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 import org.robolectric.fakes.RoboMenuItem
 import org.smartregister.fhircore.anc.AncApplication
 import org.smartregister.fhircore.anc.R
-import org.smartregister.fhircore.anc.activity.ActivityRobolectricTest
-import org.smartregister.fhircore.anc.shadow.AncApplicationShadow
 import org.smartregister.fhircore.anc.ui.anccare.encounters.EncounterListActivity
 import org.smartregister.fhircore.anc.ui.family.form.FamilyQuestionnaireActivity
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
 
-@Config(shadows = [AncApplicationShadow::class])
-internal class AncDetailsActivityTest : ActivityRobolectricTest() {
+internal class AncDetailsActivityTest : RobolectricTest() {
 
   private lateinit var patientDetailsActivity: AncDetailsActivity
 
@@ -97,9 +93,5 @@ internal class AncDetailsActivityTest : ActivityRobolectricTest() {
 
     Assert.assertEquals(expectedIntent.component, actualIntent.component)
     Assert.assertFalse(patientDetailsActivity.onOptionsItemSelected(RoboMenuItem(-1)))
-  }
-
-  override fun getActivity(): Activity {
-    return patientDetailsActivity
   }
 }

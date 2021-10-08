@@ -18,6 +18,8 @@ package org.smartregister.fhircore.eir.ui.vaccine
 
 import android.content.Intent
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -36,18 +38,15 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
-import org.smartregister.fhircore.eir.coroutine.CoroutineTestRule
 import org.smartregister.fhircore.eir.data.PatientRepository
 import org.smartregister.fhircore.eir.data.model.PatientVaccineSummary
-import org.smartregister.fhircore.eir.robolectric.RobolectricTest
-import org.smartregister.fhircore.eir.shadow.EirApplicationShadow
 import org.smartregister.fhircore.engine.data.local.DefaultRepository
 import org.smartregister.fhircore.engine.ui.questionnaire.QuestionnaireActivity
+import org.smartregister.fhircore.sharedtest.robolectric.RobolectricTest
+import org.smartregister.fhircore.sharedtest.rule.CoroutineTestRule
 
 @ExperimentalCoroutinesApi
-@Config(shadows = [EirApplicationShadow::class])
 internal class RecordVaccineViewModelTest : RobolectricTest() {
 
   private lateinit var recordVaccineViewModel: RecordVaccineViewModel
@@ -135,5 +134,15 @@ internal class RecordVaccineViewModelTest : RobolectricTest() {
     runBlocking { actualImmunizations = recordVaccineViewModel.loadImmunization(patientId)!! }
 
     Assert.assertEquals(immunizationsList[0], actualImmunizations)
+  }
+
+  fun <T> LiveData<T>.observeForTesting(block: () -> Unit) {
+    val observer = Observer<T> {}
+    try {
+      observeForever(observer)
+      block()
+    } finally {
+      removeObserver(observer)
+    }
   }
 }

@@ -21,12 +21,14 @@ import androidx.work.WorkerParameters
 import com.google.android.fhir.sync.FhirSyncWorker
 import org.smartregister.fhircore.engine.data.remote.fhir.resource.FhirResourceDataSource
 
-class QuestFhirSyncWorker(context: Context, workerParams: WorkerParameters) :
+class QuestFhirSyncWorker(private val context: Context, workerParams: WorkerParameters) :
   FhirSyncWorker(context, workerParams) {
 
-  override fun getSyncData() = QuestApplication.getContext().resourceSyncParams
+  override fun getSyncData() =
+    (this.context.applicationContext as QuestApplication).resourceSyncParams
 
-  override fun getDataSource() = FhirResourceDataSource.getInstance(QuestApplication.getContext())
+  override fun getDataSource() =
+    FhirResourceDataSource.getInstance((this.context.applicationContext as QuestApplication))
 
-  override fun getFhirEngine() = QuestApplication.getContext().fhirEngine
+  override fun getFhirEngine() = (this.context.applicationContext as QuestApplication).fhirEngine
 }
