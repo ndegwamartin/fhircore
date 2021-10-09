@@ -136,7 +136,6 @@ $dokka.location:org.smartregister.fhircore.eir.util//RECORD_VACCINE_FORM/#/Point
 $dokka.location:org.smartregister.fhircore.eir////PointingToDeclaration/-open-s-r-p -f-h-i-r -core -documentation/org.smartregister.fhircore.eir/index.html
 $dokka.location:org.smartregister.fhircore.eir/EirApplication.Companion///PointingToDeclaration/-open-s-r-p -f-h-i-r -core -documentation/org.smartregister.fhircore.eir/-eir-application/-companion/index.html
 $dokka.location:org.smartregister.fhircore.eir/EirApplication.Companion/getContext/#/PointingToDeclaration/-open-s-r-p -f-h-i-r -core -documentation/org.smartregister.fhircore.eir/-eir-application/-companion/get-context.html
-$dokka.location:org.smartregister.fhircore.eir/EirApplication.Companion/getSyncJob/#/PointingToDeclaration/-open-s-r-p -f-h-i-r -core -documentation/org.smartregister.fhircore.eir/-eir-application/-companion/get-sync-job.html
 $dokka.location:org.smartregister.fhircore.eir/EirApplication///PointingToDeclaration/-open-s-r-p -f-h-i-r -core -documentation/org.smartregister.fhircore.eir/-eir-application/index.html
 $dokka.location:org.smartregister.fhircore.eir/EirApplication/EirApplication/#/PointingToDeclaration/-open-s-r-p -f-h-i-r -core -documentation/org.smartregister.fhircore.eir/-eir-application/-eir-application.html
 $dokka.location:org.smartregister.fhircore.eir/EirApplication/applicationConfiguration/#/PointingToDeclaration/-open-s-r-p -f-h-i-r -core -documentation/org.smartregister.fhircore.eir/-eir-application/application-configuration.html
