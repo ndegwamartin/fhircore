@@ -17,3 +17,8 @@ local.properties
 
 # Gradle Properties
 gradle.properties
+
+# Release apks
+anc/release
+quest/release
+eir/release
