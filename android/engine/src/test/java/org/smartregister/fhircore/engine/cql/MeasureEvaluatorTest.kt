@@ -16,11 +16,17 @@
 
 package org.smartregister.fhircore.engine.cql
 
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
+import org.hl7.fhir.instance.model.api.IBaseBundle
+import org.hl7.fhir.instance.model.api.IBaseResource
 import java.io.File
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
 import org.smartregister.fhircore.engine.util.FileUtil
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 class MeasureEvaluatorTest {
 
@@ -37,6 +43,9 @@ class MeasureEvaluatorTest {
   @Test
   @Ignore("Fails with 'java.lang.OutOfMemoryError: Java heap space' on local and CI as well")
   fun runMeasureEvaluate() {
+    var fhirContext = FhirContext.forCached(FhirVersionEnum.R4)
+    var parser = fhirContext.newJsonParser()!!
+
     var filePatientAssetDir = File(patientAssetsDir)
     var fileUtil = FileUtil()
     var fileListString = fileUtil.recurseFolders(filePatientAssetDir)
@@ -44,11 +53,25 @@ class MeasureEvaluatorTest {
     for (f in fileListString) {
       patientResources.add(fileUtil.readJsonFile(f))
     }
+
+    var resources = ArrayList<IBaseResource>()
+    for (r in patientResources) {
+      val patientDataStream: InputStream = ByteArrayInputStream(r.toByteArray())
+      val patientData = parser.parseResource(patientDataStream) as IBaseBundle
+      resources.add(patientData)
+    }
+
+    val libraryStream: InputStream =
+      ByteArrayInputStream(fileUtil.readJsonFile(libraryFilePath).toByteArray())
+    val library = parser.parseResource(libraryStream) as IBaseBundle
+
+
     var measureEvaluator = MeasureEvaluator()
     var measureReport =
       measureEvaluator.runMeasureEvaluate(
-        fileUtil.readJsonFile(libraryFilePath),
-        patientResources,
+        resources,
+        library,
+        fhirContext,
         "http://fhir.org/guides/who/anc-cds/Measure/ANCIND01",
         "2020-01-01",
         "2020-01-31",

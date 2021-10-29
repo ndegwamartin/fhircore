@@ -83,4 +83,11 @@
 
     <string name="families">Families</string>
     <string name="anc_clients">ANC Clients</string>
+
+    <string name="edit_text_measure_report_start_date">Select date from</string>
+    <string name="edit_text_measure_report_end_date">Select date to</string>
+    <string name="button_cql_measure_report_finish">Finish</string>
+
+
+
 </resources>

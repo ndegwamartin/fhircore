@@ -312,7 +312,7 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
         any()
       )
     } returns parameters
-    patientDetailsFragment.handleCQLPatientData(auxPatientData)
+    patientDetailsFragment.handleCQL(auxPatientData)
     Assert.assertEquals(auxPatientData, patientDetailsFragment.testData)
     Assert.assertNotNull(patientDetailsFragment.textView_CQLResults)
   }
@@ -334,7 +334,7 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
         any()
       )
     } returns parameters
-    patientDetailsFragment.handleMeasureEvaluatePatient(auxPatientData)
+    patientDetailsFragment.handleMeasureEvaluate(auxPatientData)
     Assert.assertEquals(auxPatientData, patientDetailsFragment.testData)
     Assert.assertNotNull(patientDetailsFragment.textView_CQLResults)
   }

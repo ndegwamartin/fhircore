@@ -16,6 +16,7 @@
 
 package org.smartregister.fhircore.anc.ui.anccare.details
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -188,21 +189,23 @@ class AncDetailsViewModel(
     viewModelScope.launch(dispatcher.io()) {
       val measureObject =
         parser.encodeResourceToString(fhirResourceDataSource.loadData(measureURL).entry[0].resource)
-      var jsonObjectResource = JSONObject()
-      var jsonObjectResourceType = JSONObject(measureObject)
-      jsonObjectResource.put("resource", jsonObjectResourceType)
-      initialStr.append(jsonObjectResource)
 
+      initialStr.append("{\"resource\":")
+      initialStr.append(measureObject)
+      initialStr.append("}")
+
+      var auxCQLValueSetData=""
       for (lib in libList) {
-        val auxCQLValueSetData =
+        auxCQLValueSetData=
           parser.encodeResourceToString(
             fhirResourceDataSource.loadData(libURLStrBeforeEquals + lib).entry[0].resource
           )
-        var jsonObjectResource = JSONObject()
-        var jsonObjectResourceType = JSONObject(auxCQLValueSetData)
-        jsonObjectResource.put("resource", jsonObjectResourceType)
+
         initialStr.append(",")
-        initialStr.append(jsonObjectResource)
+        initialStr.append("{\"resource\":")
+        initialStr.append(auxCQLValueSetData)
+        initialStr.append("}")
+
       }
       initialStr.deleteCharAt(initialStr.length - 1)
       initialStr.append("}]}")

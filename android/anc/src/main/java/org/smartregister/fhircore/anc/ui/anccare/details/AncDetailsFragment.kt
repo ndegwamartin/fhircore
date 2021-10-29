@@ -16,6 +16,7 @@
 
 package org.smartregister.fhircore.anc.ui.anccare.details
 
+import android.app.DatePickerDialog.OnDateSetListener
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,7 +29,6 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.parser.IParser
 import com.google.android.fhir.FhirEngine
 import kotlinx.android.synthetic.main.fragment_anc_details.*
-import kotlinx.android.synthetic.main.fragment_anc_details.button_CQLEvaluate
 import org.json.JSONObject
 import org.smartregister.fhircore.anc.AncApplication
 import org.smartregister.fhircore.anc.R
@@ -46,6 +46,27 @@ import org.smartregister.fhircore.engine.ui.questionnaire.QuestionnaireActivity
 import org.smartregister.fhircore.engine.util.FileUtil
 import org.smartregister.fhircore.engine.util.extension.createFactory
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
+import android.app.DatePickerDialog
+import android.content.Context
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
+import ca.uhn.fhir.context.FhirVersionEnum
+import com.google.common.collect.Lists
+import org.hl7.fhir.instance.model.api.IBaseBundle
+import org.hl7.fhir.instance.model.api.IBaseResource
+import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileWriter
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.lang.Exception
+import java.lang.StringBuilder
+
 
 class AncDetailsFragment : Fragment() {
 
@@ -66,6 +87,8 @@ class AncDetailsFragment : Fragment() {
 
   lateinit var parser: IParser
 
+  lateinit var fhirContext: FhirContext
+
   lateinit var fhirResourceDataSource: FhirResourceDataSource
 
   lateinit var libraryEvaluator: LibraryEvaluator
@@ -75,7 +98,6 @@ class AncDetailsFragment : Fragment() {
   lateinit var fileUtil: FileUtil
 
   var libraryData = ""
-  var measureEvaluateLibraryData = ""
   var helperData = ""
   var valueSetData = ""
   var testData = ""
@@ -99,8 +121,27 @@ class AncDetailsFragment : Fragment() {
   var patientURL = ""
   var cqlConfigFileName = "configs/cql_configs.properties"
 
-  var parametersEvaluate = ""
-  var parametersMeasure = ""
+  var parametersEvaluate = MutableLiveData<String>()
+  var parametersMeasure = MutableLiveData<String>()
+
+  var allCQLDataLoaded = MutableLiveData<Boolean>()
+  var allMeasureEvaluatorLoaded = MutableLiveData<Boolean>()
+
+  lateinit var dir:File
+
+  lateinit var libraryMeasure:IBaseBundle
+  var measureEvaluateLibraryData=""
+
+  var editTextMeasureReportingDateClicked=0
+
+  val myCalendar = Calendar.getInstance()
+  lateinit var valueSetBundle:IBaseBundle
+
+  val dirCQLDirRoot="cql_libraries"
+  val fileNameMainLibraryCql="main_library_cql"
+  val fileNameHelperLibraryCql="helper_library_cql"
+  val fileNameValueSetLibraryCql="value_set_library_cql"
+  val fileNameMeasureLibraryCql="measure_library_cql"
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -116,7 +157,9 @@ class AncDetailsFragment : Fragment() {
     patientId = arguments?.getString(QuestionnaireActivity.QUESTIONNAIRE_ARG_PATIENT_KEY) ?: ""
     libraryEvaluator = LibraryEvaluator()
     measureEvaluator = MeasureEvaluator()
-    parser = FhirContext.forR4().newJsonParser()
+
+    fhirContext=FhirContext.forCached(FhirVersionEnum.R4)
+    parser = fhirContext.newJsonParser()
 
     fhirResourceDataSource = FhirResourceDataSource.getInstance(AncApplication.getContext())
 
@@ -175,14 +218,6 @@ class AncDetailsFragment : Fragment() {
     cqlMasureReportURL =
       context?.let { fileUtil.getProperty("cql_measure_report_url", it, cqlConfigFileName) }!!
 
-    cqlMeasureReportStartDate =
-      context?.let {
-        fileUtil.getProperty("cql_measure_report_start_date", it, cqlConfigFileName)
-      }!!
-
-    cqlMeasureReportEndDate =
-      context?.let { fileUtil.getProperty("cql_measure_report_end_date", it, cqlConfigFileName) }!!
-
     cqlMeasureReportReportType =
       context?.let {
         fileUtil.getProperty("cql_measure_report_report_type", it, cqlConfigFileName)
@@ -196,9 +231,17 @@ class AncDetailsFragment : Fragment() {
         fileUtil.getProperty("cql_measure_report_lib_initial_string", it, cqlConfigFileName)
       }!!
 
+
     showCQLCard()
 
     ancDetailsViewModel.fetchLastSeen().observe(viewLifecycleOwner, this::handleLastSeen)
+
+    loadCQLMeasurePatientData()
+
+    measureReportingEditTextPeriodsSetOnClickListener()
+
+    buttonCQLMeasureEvaluateStartSetOnClickListener()
+
   }
 
   private fun handleObservation(ancOverviewItem: AncOverviewItem) {
@@ -305,23 +348,30 @@ class AncDetailsFragment : Fragment() {
     lastSeen.submitList(upcomingServiceItem)
   }
 
+    fun buttonCQLMeasureEvaluateStartSetOnClickListener(){
+        button_CQL_Measure_Evaluate_Start.setOnClickListener {
+           linearLayout_measure_reporting_dates.visibility=View.VISIBLE
+           textView_CQLResults.visibility= View.GONE
+        }
+    }
+
   fun buttonCQLSetOnClickListener() {
     button_CQLEvaluate.setOnClickListener {
-      if (parametersEvaluate.isEmpty()) {
-        loadCQLLibraryData()
-      } else {
-        parametersCQLToggleFinalView()
-      }
+      button_CQL_Measure_Evaluate.isEnabled = false
+      startProgressBarAndTextViewCQLResults()
+      linearLayout_measure_reporting_dates.visibility=View.GONE
+      allCQLDataLoaded.observe(
+        viewLifecycleOwner, this::parametersCQLToggleFinalView)
     }
   }
 
   fun buttonCQLMeasureEvaluateSetOnClickListener() {
     button_CQL_Measure_Evaluate.setOnClickListener {
-      if (parametersMeasure.isEmpty()) {
-        loadMeasureEvaluateLibrary()
-      } else {
-        parametersCQLMeasureToggleFinalView()
-      }
+      linearLayout_measure_reporting_dates.visibility= View.GONE
+      button_CQLEvaluate.isEnabled = false
+      startProgressBarAndTextViewCQLResults()
+      allMeasureEvaluatorLoaded.observe(
+        viewLifecycleOwner, this::parametersCQLMeasureToggleFinalView)
     }
   }
 
@@ -331,106 +381,218 @@ class AncDetailsFragment : Fragment() {
   }
 
   fun loadCQLLibraryData() {
-    button_CQL_Measure_Evaluate.isEnabled = false
-    startProgressBarAndTextViewCQLResults()
-
-    ancDetailsViewModel
-      .fetchCQLLibraryData(parser, fhirResourceDataSource, libraryURL)
-      .observe(viewLifecycleOwner, this::handleCQLLibraryData)
+    dir = File(context?.getFilesDir(), "cql_libraries/main_library_cql")
+    if (dir.exists()) {
+      libraryData = context?.let { readFileFromInternalStorage(
+        it,
+        fileNameMainLibraryCql,
+        dirCQLDirRoot) }.toString()
+      loadCQLHelperData()
+    }else {
+      ancDetailsViewModel
+        .fetchCQLLibraryData(parser, fhirResourceDataSource, libraryURL)
+        .observe(viewLifecycleOwner, this::handleCQLLibraryData)
+    }
   }
 
   fun loadCQLHelperData() {
-    ancDetailsViewModel
-      .fetchCQLFhirHelperData(parser, fhirResourceDataSource, cqlHelperURL)
-      .observe(viewLifecycleOwner, this::handleCQLHelperData)
+
+    dir = File(context?.getFilesDir(), "cql_libraries/helper_library_cql")
+
+    if (dir.exists()) {
+      helperData = context?.let { readFileFromInternalStorage(
+        it,
+        fileNameHelperLibraryCql,
+        dirCQLDirRoot) }.toString()
+
+      loadCQLLibrarySources()
+
+      loadCQLValueSetData()
+
+    }else {
+      ancDetailsViewModel
+        .fetchCQLFhirHelperData(parser, fhirResourceDataSource, cqlHelperURL)
+        .observe(viewLifecycleOwner, this::handleCQLHelperData)
+    }
+
   }
 
   fun loadCQLValueSetData() {
-    ancDetailsViewModel
-      .fetchCQLValueSetData(parser, fhirResourceDataSource, valueSetURL)
-      .observe(viewLifecycleOwner, this::handleCQLValueSetData)
+
+    dir = File(context?.getFilesDir(), "cql_libraries/value_set_library_cql")
+
+    if (dir.exists()) {
+      valueSetData = context?.let { readFileFromInternalStorage(
+        it,
+        fileNameValueSetLibraryCql,
+        dirCQLDirRoot) }.toString()
+        postValueSetData(valueSetData)
+    }else {
+      ancDetailsViewModel
+        .fetchCQLValueSetData(parser, fhirResourceDataSource, valueSetURL)
+        .observe(viewLifecycleOwner, this::handleCQLValueSetData)
+    }
+
   }
 
-  fun loadCQLPatientData() {
-    ancDetailsViewModel
-      .fetchCQLPatientData(parser, fhirResourceDataSource, "$patientURL$patientId/\$everything")
-      .observe(viewLifecycleOwner, this::handleCQLPatientData)
+  fun postValueSetData(valueSetData:String){
+    val valueSetStream: InputStream = ByteArrayInputStream(valueSetData.toByteArray())
+    valueSetBundle = parser.parseResource(valueSetStream) as IBaseBundle
+    allCQLDataLoaded.postValue(true)
   }
+
 
   fun loadMeasureEvaluateLibrary() {
-    button_CQLEvaluate.isEnabled = false
-    startProgressBarAndTextViewCQLResults()
-    ancDetailsViewModel
-      .fetchCQLMeasureEvaluateLibraryAndValueSets(
-        parser,
-        fhirResourceDataSource,
-        measureEvaluateLibraryURL,
-        measureTypeURL,
-        cqlMeasureReportLibInitialString
-      )
-      .observe(viewLifecycleOwner, this::handleMeasureEvaluateLibrary)
+
+    dir = File(context?.getFilesDir(), "cql_libraries/measure_library_cql")
+    if (dir.exists()) {
+      measureEvaluateLibraryData = context?.let { readFileFromInternalStorage(
+        it,
+        fileNameMeasureLibraryCql,
+        dirCQLDirRoot) }.toString()
+
+      val libraryStreamMeasure: InputStream =
+        ByteArrayInputStream(measureEvaluateLibraryData.toByteArray())
+      libraryMeasure = parser.parseResource(libraryStreamMeasure) as IBaseBundle
+      allMeasureEvaluatorLoaded.postValue(true)
+    }else {
+      ancDetailsViewModel
+        .fetchCQLMeasureEvaluateLibraryAndValueSets(
+          parser,
+          fhirResourceDataSource,
+          measureEvaluateLibraryURL,
+          measureTypeURL,
+          cqlMeasureReportLibInitialString
+        )
+        .observe(viewLifecycleOwner, this::handleMeasureEvaluateLibrary)
+    }
+
   }
 
-  fun loadMeasureEvaluatePatient() {
+
+
+  fun loadCQLMeasurePatientData(){
     ancDetailsViewModel
       .fetchCQLPatientData(parser, fhirResourceDataSource, "$patientURL$patientId/\$everything")
-      .observe(viewLifecycleOwner, this::handleMeasureEvaluatePatient)
+      .observe(viewLifecycleOwner, this::handleCQLMeasureLoadPatient)
   }
 
+
+  fun handleCQLMeasureLoadPatient(auxPatientData:String){
+    setPatientTestData(auxPatientData)
+      loadCQLLibraryData()
+      loadMeasureEvaluateLibrary()
+  }
+
+
   fun handleCQLLibraryData(auxLibraryData: String) {
-    libraryData = auxLibraryData
+      libraryData = auxLibraryData
+      context?.let {
+        writeFileOnInternalStorage(
+          it,
+          fileNameMainLibraryCql,
+          libraryData,
+          dirCQLDirRoot)
+    }
     loadCQLHelperData()
   }
 
+  fun loadCQLLibrarySources(){
+    val libraryStream: InputStream = ByteArrayInputStream(libraryData.toByteArray())
+    val fhirHelpersStream: InputStream = ByteArrayInputStream(helperData.toByteArray())
+
+    val library = parser.parseResource(libraryStream)
+    val fhirHelpersLibrary = parser.parseResource(fhirHelpersStream)
+    libraryResources= Lists.newArrayList(library, fhirHelpersLibrary)
+  }
+
+  lateinit var libraryResources: List<IBaseResource>
+
+
   fun handleCQLHelperData(auxHelperData: String) {
-    helperData = auxHelperData
+
+      helperData = auxHelperData
+      context?.let {
+        writeFileOnInternalStorage(
+          it,
+          fileNameHelperLibraryCql,
+          helperData,
+          dirCQLDirRoot
+        )
+      }
+
+    loadCQLLibrarySources()
+
     loadCQLValueSetData()
   }
 
   fun handleCQLValueSetData(auxValueSetData: String) {
-    valueSetData = auxValueSetData
-    loadCQLPatientData()
+
+      valueSetData = auxValueSetData
+      context?.let {
+        writeFileOnInternalStorage(
+          it,
+          fileNameValueSetLibraryCql,
+          valueSetData,
+          dirCQLDirRoot
+        )
+      }
+
+    postValueSetData(valueSetData)
+
   }
 
-  fun handleCQLPatientData(auxPatientData: String) {
-    testData = libraryEvaluator.processCQLPatientBundle(auxPatientData)
-    parametersEvaluate =
-      libraryEvaluator.runCql(
-        libraryData,
-        helperData,
-        valueSetData,
-        testData,
+  fun handleCQL():String {
+    return libraryEvaluator.runCql(
+        libraryResources,
+        valueSetBundle,
+        patientDataIBase,
+        fhirContext,
         evaluatorId,
         contextCQL,
         contextLabel
       )
-    parametersCQLToggleFinalView()
   }
 
-  fun handleMeasureEvaluatePatient(auxPatientData: String) {
-    testData = libraryEvaluator.processCQLPatientBundle(auxPatientData)
-    var patientResources: ArrayList<String> = ArrayList()
-    patientResources.add(testData)
-    parametersMeasure =
-      measureEvaluator.runMeasureEvaluate(
-        measureEvaluateLibraryData,
-        patientResources,
+  var patientResourcesIBase = ArrayList<IBaseResource>()
+  lateinit var patientDataIBase:IBaseBundle
+
+  fun setPatientTestData(auxPatientData: String){
+    if(testData.isEmpty()) {
+      testData = libraryEvaluator.processCQLPatientBundle(auxPatientData)
+      val patientDataStream: InputStream = ByteArrayInputStream(testData.toByteArray())
+      patientDataIBase = parser.parseResource(patientDataStream) as IBaseBundle
+      patientResourcesIBase.add(patientDataIBase)
+    }
+  }
+
+  fun handleMeasureEvaluate() :String {
+    var patientDetailsData=(binding.txtViewPatientDetails.text) as String
+    return measureEvaluator.runMeasureEvaluate(
+        patientResourcesIBase,
+        libraryMeasure,
+        fhirContext,
         cqlMasureReportURL,
         cqlMeasureReportStartDate,
         cqlMeasureReportEndDate,
         cqlMeasureReportReportType,
-        cqlMeasureReportSubject
-      )
-    parametersCQLMeasureToggleFinalView()
+        patientDetailsData.
+        substring(0 , patientDetailsData.indexOf(","))
+    )
   }
-  fun parametersCQLToggleFinalView() {
-    handleParametersQCLMeasure(parametersEvaluate)
-    button_CQL_Measure_Evaluate.isEnabled = true
+  fun parametersCQLToggleFinalView(allCQLDataLoaded:Boolean) {
+    if (allCQLDataLoaded) {
+      linearLayout_measure_reporting_dates.visibility = View.GONE
+      handleParametersQCLMeasure(handleCQL())
+      button_CQL_Measure_Evaluate.isEnabled = true
+    }
   }
 
-  fun parametersCQLMeasureToggleFinalView() {
-    handleParametersQCLMeasure(parametersMeasure)
-    button_CQLEvaluate.isEnabled = true
+  fun parametersCQLMeasureToggleFinalView(allMeasureReportDataLoaded:Boolean) {
+    if (allMeasureReportDataLoaded) {
+      handleParametersQCLMeasure(handleMeasureEvaluate())
+      button_CQLEvaluate.isEnabled = true
+    }
   }
 
   fun handleParametersQCLMeasure(parameters: String) {
@@ -440,9 +602,24 @@ class AncDetailsFragment : Fragment() {
     textView_CQLResults.visibility = View.VISIBLE
   }
 
+
   fun handleMeasureEvaluateLibrary(auxMeasureEvaluateLibData: String) {
+
     measureEvaluateLibraryData = auxMeasureEvaluateLibData
-    loadMeasureEvaluatePatient()
+      context?.let {
+        writeFileOnInternalStorage(
+          it,
+          fileNameMeasureLibraryCql,
+          measureEvaluateLibraryData,
+          dirCQLDirRoot
+        )
+    }
+
+    val libraryStreamMeasure: InputStream =
+      ByteArrayInputStream(measureEvaluateLibraryData.toByteArray())
+    libraryMeasure = parser.parseResource(libraryStreamMeasure) as IBaseBundle
+    allMeasureEvaluatorLoaded.postValue(true)
+
   }
 
   val ANC_TEST_PATIENT_ID = "e8725b4c-6db0-4158-a24d-50a5ddf1c2ed"
@@ -461,4 +638,97 @@ class AncDetailsFragment : Fragment() {
       AncPatientItemMapper
     )
   }
+
+  var date =
+    OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+      myCalendar.set(Calendar.YEAR, year)
+      myCalendar.set(Calendar.MONTH, monthOfYear)
+      myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+      updateMeasureReportingDateEditTextAndParams()
+    }
+
+
+  fun measureReportingEditTextPeriodsSetOnClickListener() {
+
+    editText_measure_reporting_date_from.setOnClickListener {
+      editTextMeasureReportingDateClicked=1
+      onclickListenerEditTextMeasureReporting()
+    }
+
+    editText_measure_reporting_date_to.setOnClickListener {
+      editTextMeasureReportingDateClicked=2
+      onclickListenerEditTextMeasureReporting()
+    }
+
+  }
+
+  fun onclickListenerEditTextMeasureReporting(){
+    context?.let { it1 ->
+      DatePickerDialog(
+        it1,
+        android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+        date, myCalendar[Calendar.YEAR],
+        myCalendar[Calendar.MONTH],
+        myCalendar[Calendar.DAY_OF_MONTH]
+      ).show()
+    }
+  }
+
+
+  private fun updateMeasureReportingDateEditTextAndParams() {
+    val myFormat = "dd/MM/yy"
+    val sdf = SimpleDateFormat(myFormat, Locale.US)
+    val dateTime=sdf.format(myCalendar.time);
+    if(editTextMeasureReportingDateClicked==1) {
+      editText_measure_reporting_date_from.setText(dateTime)
+      cqlMeasureReportStartDate=dateTime
+    }else{
+      editText_measure_reporting_date_to.setText(dateTime)
+      cqlMeasureReportEndDate=dateTime
+
+    }
+  }
+
+  fun writeFileOnInternalStorage(context: Context,
+                                 fileName: String?,
+                                 body: String?,
+                                 dirName:String) {
+
+    val dir = File(context.getFilesDir(), dirName)
+    if (!dir.exists()) {
+      dir.mkdir()
+    }
+    try {
+      val file = File(dir, fileName)
+      val writer = FileWriter(file)
+      writer.append(body)
+      writer.flush()
+      writer.close()
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
+  }
+
+  fun readFileFromInternalStorage(context: Context,
+                                 fileName: String?,
+                                 dirName:String):String{
+    val dir = File(context.getFilesDir(), dirName)
+    val sb = StringBuilder()
+    try {
+      val file = File(dir, fileName)
+      val fis=FileInputStream(file)
+      val isr = InputStreamReader(fis)
+      val bufferedReader = BufferedReader(isr)
+      var line: String?
+      while (bufferedReader.readLine().also { line = it } != null) {
+        sb.append(line)
+      }
+      fis.close()
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
+    return sb.toString()
+  }
 }
+
+
