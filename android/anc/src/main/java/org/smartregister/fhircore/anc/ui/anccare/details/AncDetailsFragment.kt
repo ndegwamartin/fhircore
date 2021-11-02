@@ -51,7 +51,8 @@ import java.util.*
 import kotlin.collections.ArrayList
 import android.app.DatePickerDialog
 import android.content.Context
-import android.util.Log
+import android.os.AsyncTask
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.common.collect.Lists
@@ -97,10 +98,12 @@ class AncDetailsFragment : Fragment() {
 
   lateinit var fileUtil: FileUtil
 
-  var libraryData = ""
-  var helperData = ""
-  var valueSetData = ""
-  var testData = ""
+  lateinit var libraryResources: List<IBaseResource>
+
+  var libraryData:String? = ""
+  var helperData:String? = ""
+  var valueSetData:String? = ""
+  var testData:String? = ""
   val evaluatorId = "ANCRecommendationA2"
   val contextCQL = "patient"
   val contextLabel = "mom-with-anemia"
@@ -110,7 +113,7 @@ class AncDetailsFragment : Fragment() {
   var measureEvaluateLibraryURL = ""
   var measureTypeURL = ""
 
-  var cqlMasureReportURL = ""
+  var cqlMeasureReportURL = ""
   var cqlMeasureReportStartDate = ""
   var cqlMeasureReportEndDate = ""
   var cqlMeasureReportReportType = ""
@@ -121,27 +124,25 @@ class AncDetailsFragment : Fragment() {
   var patientURL = ""
   var cqlConfigFileName = "configs/cql_configs.properties"
 
-  var parametersEvaluate = MutableLiveData<String>()
-  var parametersMeasure = MutableLiveData<String>()
-
-  var allCQLDataLoaded = MutableLiveData<Boolean>()
-  var allMeasureEvaluatorLoaded = MutableLiveData<Boolean>()
-
   lateinit var dir:File
-
   lateinit var libraryMeasure:IBaseBundle
-  var measureEvaluateLibraryData=""
+  var measureEvaluateLibraryData:String?=""
 
   var editTextMeasureReportingDateClicked=0
 
   val myCalendar = Calendar.getInstance()
   lateinit var valueSetBundle:IBaseBundle
 
+  var patientResourcesIBase = ArrayList<IBaseResource>()
+  lateinit var patientDataIBase:IBaseBundle
+
   val dirCQLDirRoot="cql_libraries"
   val fileNameMainLibraryCql="main_library_cql"
   val fileNameHelperLibraryCql="helper_library_cql"
   val fileNameValueSetLibraryCql="value_set_library_cql"
   val fileNameMeasureLibraryCql="measure_library_cql"
+
+  lateinit var date: OnDateSetListener
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -215,7 +216,7 @@ class AncDetailsFragment : Fragment() {
         fileUtil.getProperty("cql_measure_report_resource_url", it, cqlConfigFileName)
       }!!
 
-    cqlMasureReportURL =
+    cqlMeasureReportURL =
       context?.let { fileUtil.getProperty("cql_measure_report_url", it, cqlConfigFileName) }!!
 
     cqlMeasureReportReportType =
@@ -240,8 +241,13 @@ class AncDetailsFragment : Fragment() {
 
     measureReportingEditTextPeriodsSetOnClickListener()
 
-    buttonCQLMeasureEvaluateStartSetOnClickListener()
-
+    date=
+      OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
+        myCalendar.set(Calendar.YEAR, year)
+        myCalendar.set(Calendar.MONTH, monthOfYear)
+        myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        updateMeasureReportingDateEditTextAndParams()
+      }
   }
 
   private fun handleObservation(ancOverviewItem: AncOverviewItem) {
@@ -348,30 +354,23 @@ class AncDetailsFragment : Fragment() {
     lastSeen.submitList(upcomingServiceItem)
   }
 
-    fun buttonCQLMeasureEvaluateStartSetOnClickListener(){
-        button_CQL_Measure_Evaluate_Start.setOnClickListener {
-           linearLayout_measure_reporting_dates.visibility=View.VISIBLE
-           textView_CQLResults.visibility= View.GONE
-        }
-    }
+  fun buttonCQLMeasureEvaluateStartSetOnClickListener(){
+      button_CQL_Measure_Evaluate_Start.setOnClickListener {
+         linearLayout_measure_reporting_dates.visibility=View.VISIBLE
+         textView_CQLResults.visibility= View.GONE
+      }
+    buttonCQLMeasureEvaluateSetOnClickListener()
+  }
 
   fun buttonCQLSetOnClickListener() {
     button_CQLEvaluate.setOnClickListener {
-      button_CQL_Measure_Evaluate.isEnabled = false
-      startProgressBarAndTextViewCQLResults()
-      linearLayout_measure_reporting_dates.visibility=View.GONE
-      allCQLDataLoaded.observe(
-        viewLifecycleOwner, this::parametersCQLToggleFinalView)
+      parametersCQLToggleFinalView()
     }
   }
 
   fun buttonCQLMeasureEvaluateSetOnClickListener() {
     button_CQL_Measure_Evaluate.setOnClickListener {
-      linearLayout_measure_reporting_dates.visibility= View.GONE
-      button_CQLEvaluate.isEnabled = false
-      startProgressBarAndTextViewCQLResults()
-      allMeasureEvaluatorLoaded.observe(
-        viewLifecycleOwner, this::parametersCQLMeasureToggleFinalView)
+      parametersCQLMeasureToggleFinalView()
     }
   }
 
@@ -383,7 +382,7 @@ class AncDetailsFragment : Fragment() {
   fun loadCQLLibraryData() {
     dir = File(context?.getFilesDir(), "cql_libraries/main_library_cql")
     if (dir.exists()) {
-      libraryData = context?.let { readFileFromInternalStorage(
+      libraryData = context?.let { fileUtil.readFileFromInternalStorage(
         it,
         fileNameMainLibraryCql,
         dirCQLDirRoot) }.toString()
@@ -400,7 +399,7 @@ class AncDetailsFragment : Fragment() {
     dir = File(context?.getFilesDir(), "cql_libraries/helper_library_cql")
 
     if (dir.exists()) {
-      helperData = context?.let { readFileFromInternalStorage(
+      helperData = context?.let { fileUtil.readFileFromInternalStorage(
         it,
         fileNameHelperLibraryCql,
         dirCQLDirRoot) }.toString()
@@ -420,13 +419,12 @@ class AncDetailsFragment : Fragment() {
   fun loadCQLValueSetData() {
 
     dir = File(context?.getFilesDir(), "cql_libraries/value_set_library_cql")
-
     if (dir.exists()) {
-      valueSetData = context?.let { readFileFromInternalStorage(
+      valueSetData = context?.let { fileUtil.readFileFromInternalStorage(
         it,
         fileNameValueSetLibraryCql,
         dirCQLDirRoot) }.toString()
-        postValueSetData(valueSetData)
+        postValueSetData(valueSetData!!)
     }else {
       ancDetailsViewModel
         .fetchCQLValueSetData(parser, fhirResourceDataSource, valueSetURL)
@@ -438,23 +436,23 @@ class AncDetailsFragment : Fragment() {
   fun postValueSetData(valueSetData:String){
     val valueSetStream: InputStream = ByteArrayInputStream(valueSetData.toByteArray())
     valueSetBundle = parser.parseResource(valueSetStream) as IBaseBundle
-    allCQLDataLoaded.postValue(true)
+    button_CQLEvaluate.isEnabled=true
+    buttonCQLSetOnClickListener()
   }
 
 
   fun loadMeasureEvaluateLibrary() {
-
     dir = File(context?.getFilesDir(), "cql_libraries/measure_library_cql")
     if (dir.exists()) {
-      measureEvaluateLibraryData = context?.let { readFileFromInternalStorage(
+      measureEvaluateLibraryData = context?.let { fileUtil.readFileFromInternalStorage(
         it,
         fileNameMeasureLibraryCql,
         dirCQLDirRoot) }.toString()
-
       val libraryStreamMeasure: InputStream =
-        ByteArrayInputStream(measureEvaluateLibraryData.toByteArray())
+        ByteArrayInputStream(measureEvaluateLibraryData!!.toByteArray())
       libraryMeasure = parser.parseResource(libraryStreamMeasure) as IBaseBundle
-      allMeasureEvaluatorLoaded.postValue(true)
+      button_CQL_Measure_Evaluate_Start.isEnabled = true
+      buttonCQLMeasureEvaluateStartSetOnClickListener()
     }else {
       ancDetailsViewModel
         .fetchCQLMeasureEvaluateLibraryAndValueSets(
@@ -469,26 +467,23 @@ class AncDetailsFragment : Fragment() {
 
   }
 
-
-
   fun loadCQLMeasurePatientData(){
     ancDetailsViewModel
       .fetchCQLPatientData(parser, fhirResourceDataSource, "$patientURL$patientId/\$everything")
       .observe(viewLifecycleOwner, this::handleCQLMeasureLoadPatient)
   }
 
-
   fun handleCQLMeasureLoadPatient(auxPatientData:String){
     setPatientTestData(auxPatientData)
-      loadCQLLibraryData()
-      loadMeasureEvaluateLibrary()
+    loadCQLLibraryData()
+    loadMeasureEvaluateLibrary()
   }
 
 
   fun handleCQLLibraryData(auxLibraryData: String) {
       libraryData = auxLibraryData
       context?.let {
-        writeFileOnInternalStorage(
+        fileUtil.writeFileOnInternalStorage(
           it,
           fileNameMainLibraryCql,
           libraryData,
@@ -498,22 +493,19 @@ class AncDetailsFragment : Fragment() {
   }
 
   fun loadCQLLibrarySources(){
-    val libraryStream: InputStream = ByteArrayInputStream(libraryData.toByteArray())
-    val fhirHelpersStream: InputStream = ByteArrayInputStream(helperData.toByteArray())
+    val libraryStream: InputStream = ByteArrayInputStream(libraryData!!.toByteArray())
+    val fhirHelpersStream: InputStream = ByteArrayInputStream(helperData!!.toByteArray())
 
     val library = parser.parseResource(libraryStream)
     val fhirHelpersLibrary = parser.parseResource(fhirHelpersStream)
     libraryResources= Lists.newArrayList(library, fhirHelpersLibrary)
   }
 
-  lateinit var libraryResources: List<IBaseResource>
-
-
   fun handleCQLHelperData(auxHelperData: String) {
 
       helperData = auxHelperData
       context?.let {
-        writeFileOnInternalStorage(
+        fileUtil.writeFileOnInternalStorage(
           it,
           fileNameHelperLibraryCql,
           helperData,
@@ -527,10 +519,9 @@ class AncDetailsFragment : Fragment() {
   }
 
   fun handleCQLValueSetData(auxValueSetData: String) {
-
       valueSetData = auxValueSetData
       context?.let {
-        writeFileOnInternalStorage(
+        fileUtil.writeFileOnInternalStorage(
           it,
           fileNameValueSetLibraryCql,
           valueSetData,
@@ -538,8 +529,7 @@ class AncDetailsFragment : Fragment() {
         )
       }
 
-    postValueSetData(valueSetData)
-
+    postValueSetData(valueSetData!!)
   }
 
   fun handleCQL():String {
@@ -554,13 +544,10 @@ class AncDetailsFragment : Fragment() {
       )
   }
 
-  var patientResourcesIBase = ArrayList<IBaseResource>()
-  lateinit var patientDataIBase:IBaseBundle
-
   fun setPatientTestData(auxPatientData: String){
-    if(testData.isEmpty()) {
+    if(testData!!.isEmpty()) {
       testData = libraryEvaluator.processCQLPatientBundle(auxPatientData)
-      val patientDataStream: InputStream = ByteArrayInputStream(testData.toByteArray())
+      val patientDataStream: InputStream = ByteArrayInputStream(testData!!.toByteArray())
       patientDataIBase = parser.parseResource(patientDataStream) as IBaseBundle
       patientResourcesIBase.add(patientDataIBase)
     }
@@ -572,7 +559,7 @@ class AncDetailsFragment : Fragment() {
         patientResourcesIBase,
         libraryMeasure,
         fhirContext,
-        cqlMasureReportURL,
+        cqlMeasureReportURL,
         cqlMeasureReportStartDate,
         cqlMeasureReportEndDate,
         cqlMeasureReportReportType,
@@ -580,19 +567,19 @@ class AncDetailsFragment : Fragment() {
         substring(0 , patientDetailsData.indexOf(","))
     )
   }
-  fun parametersCQLToggleFinalView(allCQLDataLoaded:Boolean) {
-    if (allCQLDataLoaded) {
-      linearLayout_measure_reporting_dates.visibility = View.GONE
-      handleParametersQCLMeasure(handleCQL())
-      button_CQL_Measure_Evaluate.isEnabled = true
-    }
+  fun parametersCQLToggleFinalView() {
+    linearLayout_measure_reporting_dates.visibility=View.GONE
+    startProgressBarAndTextViewCQLResults()
+    val parametersCQL=handleCQL()
+    handleParametersQCLMeasure(parametersCQL)
   }
 
-  fun parametersCQLMeasureToggleFinalView(allMeasureReportDataLoaded:Boolean) {
-    if (allMeasureReportDataLoaded) {
-      handleParametersQCLMeasure(handleMeasureEvaluate())
-      button_CQLEvaluate.isEnabled = true
-    }
+
+  fun parametersCQLMeasureToggleFinalView() {
+    linearLayout_measure_reporting_dates.visibility= View.GONE
+    startProgressBarAndTextViewCQLResults()
+    val parametersMeasure=handleMeasureEvaluate()
+    handleParametersQCLMeasure(parametersMeasure)
   }
 
   fun handleParametersQCLMeasure(parameters: String) {
@@ -607,7 +594,7 @@ class AncDetailsFragment : Fragment() {
 
     measureEvaluateLibraryData = auxMeasureEvaluateLibData
       context?.let {
-        writeFileOnInternalStorage(
+        fileUtil.writeFileOnInternalStorage(
           it,
           fileNameMeasureLibraryCql,
           measureEvaluateLibraryData,
@@ -616,10 +603,10 @@ class AncDetailsFragment : Fragment() {
     }
 
     val libraryStreamMeasure: InputStream =
-      ByteArrayInputStream(measureEvaluateLibraryData.toByteArray())
+      ByteArrayInputStream(measureEvaluateLibraryData!!.toByteArray())
     libraryMeasure = parser.parseResource(libraryStreamMeasure) as IBaseBundle
-    allMeasureEvaluatorLoaded.postValue(true)
-
+    button_CQL_Measure_Evaluate_Start.isEnabled = true
+    buttonCQLMeasureEvaluateStartSetOnClickListener()
   }
 
   val ANC_TEST_PATIENT_ID = "e8725b4c-6db0-4158-a24d-50a5ddf1c2ed"
@@ -627,8 +614,6 @@ class AncDetailsFragment : Fragment() {
     if (patientId == ANC_TEST_PATIENT_ID) {
       textView_EvaluateCQLHeader.visibility = View.VISIBLE
       cardView_CQLSection.visibility = View.VISIBLE
-      buttonCQLSetOnClickListener()
-      buttonCQLMeasureEvaluateSetOnClickListener()
     }
   }
 
@@ -639,17 +624,7 @@ class AncDetailsFragment : Fragment() {
     )
   }
 
-  var date =
-    OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
-      myCalendar.set(Calendar.YEAR, year)
-      myCalendar.set(Calendar.MONTH, monthOfYear)
-      myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-      updateMeasureReportingDateEditTextAndParams()
-    }
-
-
   fun measureReportingEditTextPeriodsSetOnClickListener() {
-
     editText_measure_reporting_date_from.setOnClickListener {
       editTextMeasureReportingDateClicked=1
       onclickListenerEditTextMeasureReporting()
@@ -674,8 +649,7 @@ class AncDetailsFragment : Fragment() {
     }
   }
 
-
-  private fun updateMeasureReportingDateEditTextAndParams() {
+   fun updateMeasureReportingDateEditTextAndParams() {
     val myFormat = "dd/MM/yy"
     val sdf = SimpleDateFormat(myFormat, Locale.US)
     val dateTime=sdf.format(myCalendar.time);
@@ -685,50 +659,11 @@ class AncDetailsFragment : Fragment() {
     }else{
       editText_measure_reporting_date_to.setText(dateTime)
       cqlMeasureReportEndDate=dateTime
-
     }
   }
 
-  fun writeFileOnInternalStorage(context: Context,
-                                 fileName: String?,
-                                 body: String?,
-                                 dirName:String) {
 
-    val dir = File(context.getFilesDir(), dirName)
-    if (!dir.exists()) {
-      dir.mkdir()
-    }
-    try {
-      val file = File(dir, fileName)
-      val writer = FileWriter(file)
-      writer.append(body)
-      writer.flush()
-      writer.close()
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
-  }
 
-  fun readFileFromInternalStorage(context: Context,
-                                 fileName: String?,
-                                 dirName:String):String{
-    val dir = File(context.getFilesDir(), dirName)
-    val sb = StringBuilder()
-    try {
-      val file = File(dir, fileName)
-      val fis=FileInputStream(file)
-      val isr = InputStreamReader(fis)
-      val bufferedReader = BufferedReader(isr)
-      var line: String?
-      while (bufferedReader.readLine().also { line = it } != null) {
-        sb.append(line)
-      }
-      fis.close()
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
-    return sb.toString()
-  }
 }
 
 

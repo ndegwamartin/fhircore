@@ -79,4 +79,14 @@ class FileUtilTest {
     var fileListString = fileUtil.recurseFolders(filePatientAssetDir)
     Assert.assertNotNull(fileListString)
   }
+
+  @Test
+  fun testWriteFileOnInternalStorage(){
+
+  }
+
+  @Test
+  fun testReadFileFromInternalStorage(){
+
+  }
 }
