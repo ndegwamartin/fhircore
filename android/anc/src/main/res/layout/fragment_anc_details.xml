@@ -197,7 +197,6 @@
                                 android:layout_margin="2dp"
                                 android:layout_marginStart="1dp"
                                 android:layout_weight="1"
-                                android:enabled="false"
                                 android:text="@string/button_cql_evaluate" />
 
                             <Button
@@ -207,7 +206,6 @@
                                 android:layout_margin="2dp"
                                 android:layout_marginStart="1dp"
                                 android:layout_weight="1"
-                                android:enabled="false"
                                 android:text="@string/button_cql_measure_report" />
 
                         </LinearLayout>

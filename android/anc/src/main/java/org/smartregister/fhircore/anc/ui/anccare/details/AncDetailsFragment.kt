@@ -52,10 +52,14 @@ import kotlin.collections.ArrayList
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.AsyncTask
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.common.collect.Lists
+import kotlinx.coroutines.launch
 import org.hl7.fhir.instance.model.api.IBaseBundle
 import org.hl7.fhir.instance.model.api.IBaseResource
 import java.io.BufferedReader
@@ -67,6 +71,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.lang.Exception
 import java.lang.StringBuilder
+import java.util.concurrent.Executors
 
 
 class AncDetailsFragment : Fragment() {
@@ -141,6 +146,9 @@ class AncDetailsFragment : Fragment() {
   val fileNameHelperLibraryCql="helper_library_cql"
   val fileNameValueSetLibraryCql="value_set_library_cql"
   val fileNameMeasureLibraryCql="measure_library_cql"
+
+  val executor = Executors.newSingleThreadExecutor()
+  val handler = Handler(Looper.getMainLooper())
 
   lateinit var date: OnDateSetListener
 
@@ -239,7 +247,11 @@ class AncDetailsFragment : Fragment() {
 
     loadCQLMeasurePatientData()
 
-    measureReportingEditTextPeriodsSetOnClickListener()
+    editText_measure_reporting_date_from.setText("01/01/2021")
+    editText_measure_reporting_date_to.setText("01/12/2021")
+
+    cqlMeasureReportStartDate=editText_measure_reporting_date_from.text.toString()
+    cqlMeasureReportEndDate=editText_measure_reporting_date_to.text.toString()
 
     date=
       OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
@@ -374,11 +386,6 @@ class AncDetailsFragment : Fragment() {
     }
   }
 
-  fun startProgressBarAndTextViewCQLResults() {
-    progress_circular_cql.visibility = View.VISIBLE
-    textView_CQLResults.visibility = View.GONE
-  }
-
   fun loadCQLLibraryData() {
     dir = File(context?.getFilesDir(), "cql_libraries/main_library_cql")
     if (dir.exists()) {
@@ -436,7 +443,6 @@ class AncDetailsFragment : Fragment() {
   fun postValueSetData(valueSetData:String){
     val valueSetStream: InputStream = ByteArrayInputStream(valueSetData.toByteArray())
     valueSetBundle = parser.parseResource(valueSetStream) as IBaseBundle
-    button_CQLEvaluate.isEnabled=true
     buttonCQLSetOnClickListener()
   }
 
@@ -448,11 +454,14 @@ class AncDetailsFragment : Fragment() {
         it,
         fileNameMeasureLibraryCql,
         dirCQLDirRoot) }.toString()
+
       val libraryStreamMeasure: InputStream =
         ByteArrayInputStream(measureEvaluateLibraryData!!.toByteArray())
+
       libraryMeasure = parser.parseResource(libraryStreamMeasure) as IBaseBundle
-      button_CQL_Measure_Evaluate_Start.isEnabled = true
-      buttonCQLMeasureEvaluateStartSetOnClickListener()
+
+      loadMeasureEvaluateLibraryToggleButtons()
+
     }else {
       ancDetailsViewModel
         .fetchCQLMeasureEvaluateLibraryAndValueSets(
@@ -464,10 +473,17 @@ class AncDetailsFragment : Fragment() {
         )
         .observe(viewLifecycleOwner, this::handleMeasureEvaluateLibrary)
     }
-
   }
 
+  fun loadMeasureEvaluateLibraryToggleButtons(){
+    buttonCQLMeasureEvaluateStartSetOnClickListener()
+    measureReportingEditTextPeriodsSetOnClickListener()
+    toggleViewEndLoadCQLMeasureData()
+  }
+
+
   fun loadCQLMeasurePatientData(){
+    toggleViewStartLoadCQLMeasureData()
     ancDetailsViewModel
       .fetchCQLPatientData(parser, fhirResourceDataSource, "$patientURL$patientId/\$everything")
       .observe(viewLifecycleOwner, this::handleCQLMeasureLoadPatient)
@@ -567,28 +583,59 @@ class AncDetailsFragment : Fragment() {
         substring(0 , patientDetailsData.indexOf(","))
     )
   }
+
   fun parametersCQLToggleFinalView() {
+    toggleViewStartLoadCQLMeasureData()
     linearLayout_measure_reporting_dates.visibility=View.GONE
-    startProgressBarAndTextViewCQLResults()
-    val parametersCQL=handleCQL()
-    handleParametersQCLMeasure(parametersCQL)
+    textView_CQLResults.visibility=View.GONE
+
+    executor.execute {
+      val parametersCQL=handleCQL()
+      handler.post {
+        handleParametersQCLMeasure(parametersCQL)
+        toggleViewEndLoadCQLMeasureData()
+      }
+    }
   }
 
 
   fun parametersCQLMeasureToggleFinalView() {
-    linearLayout_measure_reporting_dates.visibility= View.GONE
-    startProgressBarAndTextViewCQLResults()
-    val parametersMeasure=handleMeasureEvaluate()
-    handleParametersQCLMeasure(parametersMeasure)
+    toggleViewStartLoadCQLMeasureData()
+
+    editText_measure_reporting_date_from.isEnabled=false
+    editText_measure_reporting_date_to.isEnabled=false
+    button_CQL_Measure_Evaluate.isEnabled=false
+
+    executor.execute {
+      val parametersMeasure=handleMeasureEvaluate()
+      handler.post {
+        handleParametersQCLMeasure(parametersMeasure)
+        toggleViewEndLoadCQLMeasureData()
+
+        editText_measure_reporting_date_from.isEnabled=true
+        editText_measure_reporting_date_to.isEnabled=true
+        button_CQL_Measure_Evaluate.isEnabled=true
+      }
+    }
   }
 
   fun handleParametersQCLMeasure(parameters: String) {
     val jsonObject = JSONObject(parameters)
     textView_CQLResults.text = jsonObject.toString(4)
-    progress_circular_cql.visibility = View.GONE
     textView_CQLResults.visibility = View.VISIBLE
   }
 
+  fun toggleViewStartLoadCQLMeasureData(){
+    button_CQLEvaluate.isEnabled=false
+    button_CQL_Measure_Evaluate_Start.isEnabled=false
+    progress_circular_cql.visibility=View.VISIBLE
+  }
+
+  fun toggleViewEndLoadCQLMeasureData(){
+    button_CQLEvaluate.isEnabled=true
+    button_CQL_Measure_Evaluate_Start.isEnabled=true
+    progress_circular_cql.visibility=View.GONE
+  }
 
   fun handleMeasureEvaluateLibrary(auxMeasureEvaluateLibData: String) {
 
@@ -601,12 +648,10 @@ class AncDetailsFragment : Fragment() {
           dirCQLDirRoot
         )
     }
-
     val libraryStreamMeasure: InputStream =
       ByteArrayInputStream(measureEvaluateLibraryData!!.toByteArray())
     libraryMeasure = parser.parseResource(libraryStreamMeasure) as IBaseBundle
-    button_CQL_Measure_Evaluate_Start.isEnabled = true
-    buttonCQLMeasureEvaluateStartSetOnClickListener()
+    loadMeasureEvaluateLibraryToggleButtons()
   }
 
   val ANC_TEST_PATIENT_ID = "e8725b4c-6db0-4158-a24d-50a5ddf1c2ed"
@@ -661,8 +706,6 @@ class AncDetailsFragment : Fragment() {
       cqlMeasureReportEndDate=dateTime
     }
   }
-
-
 
 }
 

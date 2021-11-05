@@ -52,7 +52,7 @@ class FileUtil {
    */
   @Throws(IOException::class)
   fun readJsonFile(fileName: String): String {
-    var fileNameFinal = ASSET_BASE_PATH_RESOURCES + fileName
+    val fileNameFinal = ASSET_BASE_PATH_RESOURCES + fileName
     val br = BufferedReader(InputStreamReader(FileInputStream(fileNameFinal)))
     val sb = StringBuilder()
     var line = br.readLine()

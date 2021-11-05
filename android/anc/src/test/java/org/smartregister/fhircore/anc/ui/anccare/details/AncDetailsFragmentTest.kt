@@ -43,6 +43,7 @@ import org.hl7.fhir.instance.model.api.IBaseBundle
 import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.robolectric.Robolectric
@@ -88,7 +89,6 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
   var fileUtil=FileUtil()
 
   var libraryData = fileUtil.readJsonFile("test/resources/cql/library.json")
-  val libraryDataStream: InputStream = ByteArrayInputStream(libraryData.toByteArray())
 
   var valueSetData = fileUtil.readJsonFile("test/resources/cql/valueSet.json")
   val valueSetDataStream: InputStream = ByteArrayInputStream(valueSetData.toByteArray())
@@ -97,7 +97,6 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
   val patientDataStream: InputStream = ByteArrayInputStream(patientData.toByteArray())
 
   var helperData = fileUtil.readJsonFile("test/resources/cql/helper.json")
-  val helperDataStream: InputStream = ByteArrayInputStream(helperData.toByteArray())
 
   val parameters = "{\"parameters\":\"parameters\"}"
 
@@ -303,6 +302,17 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
   }
 
   @Test
+  fun testSetPatientTestData(){
+    every {
+      patientDetailsFragment
+        .libraryEvaluator.processCQLPatientBundle(any())
+    } returns valueSetData
+    patientDetailsFragment.testData=""
+    patientDetailsFragment.setPatientTestData("")
+    Assert.assertEquals(valueSetData, patientDetailsFragment.testData)
+  }
+
+  @Test
   fun testHandleCQLLibraryData() {
     val auxLibraryData = "auxLibraryData"
     every { patientDetailsFragment.loadCQLHelperData() } returns Unit
@@ -325,7 +335,7 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
   @Test
   fun testPostValueSetData(){
     patientDetailsFragment.postValueSetData(valueSetData)
-    Assert.assertNotNull(patientDetailsFragment.allCQLDataLoaded.value)
+    Assert.assertNotNull(patientDetailsFragment.valueSetBundle)
   }
 
   @Test
@@ -388,8 +398,8 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
     patientDetailsFragment.loadCQLLibraryData()
 
     every { patientDetailsFragment.dir.exists() } returns false
-    var auxCQLLibraryData = "auxCQLLibraryData"
-    var libraryData = MutableLiveData<String>()
+    val auxCQLLibraryData = "auxCQLLibraryData"
+    val libraryData = MutableLiveData<String>()
     libraryData.postValue(auxCQLLibraryData)
 
     coroutinesTestRule.runBlockingTest {
@@ -402,34 +412,45 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
     Assert.assertEquals(auxCQLLibraryData, libraryData.value)
   }
 
-//  @Test
-//  fun testLoadMeasureEvaluateLibrary() {
-//
-//    every { patientDetailsFragment.dir.exists() } returns true
-//    every { patientDetailsFragment.allMeasureEvaluatorLoaded.postValue(any()) } returns Unit
-//    every { patientDetailsFragment
-//      .writeFileOnInternalStorage(any(),any(),any(),any()) } returns Unit
-//    patientDetailsFragment.loadMeasureEvaluateLibrary()
-//
-//    every { patientDetailsFragment.dir.exists() } returns false
-//    var auxCQLMeasureEvaluateData = "loadMeasureEvaluateLibraryData"
-//    var libraMeasureEvaluateData = MutableLiveData<String>()
-//    libraMeasureEvaluateData.postValue(auxCQLMeasureEvaluateData)
-//    coroutinesTestRule.runBlockingTest {
-//      coEvery {
-//        patientDetailsViewModel.fetchCQLMeasureEvaluateLibraryAndValueSets(
-//          parser,
-//          fhirResourceDataSource,
-//          any(),
-//          any(),
-//          any()
-//        )
-//      } returns libraMeasureEvaluateData
-//    }
-//    patientDetailsFragment.loadMeasureEvaluateLibrary()
-//    Assert.assertNotNull(libraMeasureEvaluateData.value)
-//    Assert.assertEquals(auxCQLMeasureEvaluateData, libraMeasureEvaluateData.value)
-//  }
+  @Test
+  fun testLoadMeasureEvaluateLibraryToggleButtons(){
+    every { patientDetailsFragment.buttonCQLMeasureEvaluateStartSetOnClickListener() } returns Unit
+    every { patientDetailsFragment.measureReportingEditTextPeriodsSetOnClickListener() } returns Unit
+    patientDetailsFragment.loadMeasureEvaluateLibraryToggleButtons()
+    Assert.assertEquals(true,patientDetailsFragment.button_CQLEvaluate.isEnabled)
+  }
+
+  @Test
+  fun testLoadMeasureEvaluateLibrary() {
+
+    every { patientDetailsFragment.dir.exists() } returns true
+    every { patientDetailsFragment.fileUtil
+      .readFileFromInternalStorage(any(),any(),any()) } returns valueSetData
+    every { patientDetailsFragment.loadMeasureEvaluateLibraryToggleButtons() } returns Unit
+
+    patientDetailsFragment.loadMeasureEvaluateLibrary()
+
+    Assert.assertNotNull(patientDetailsFragment.libraryMeasure)
+
+    every { patientDetailsFragment.dir.exists() } returns false
+    val auxCQLMeasureEvaluateData = "loadMeasureEvaluateLibraryData"
+    val libraMeasureEvaluateData = MutableLiveData<String>()
+    libraMeasureEvaluateData.postValue(auxCQLMeasureEvaluateData)
+    coroutinesTestRule.runBlockingTest {
+      coEvery {
+        patientDetailsViewModel.fetchCQLMeasureEvaluateLibraryAndValueSets(
+          parser,
+          fhirResourceDataSource,
+          any(),
+          any(),
+          any()
+        )
+      } returns libraMeasureEvaluateData
+    }
+    patientDetailsFragment.loadMeasureEvaluateLibrary()
+    Assert.assertNotNull(libraMeasureEvaluateData.value)
+    Assert.assertEquals(auxCQLMeasureEvaluateData, libraMeasureEvaluateData.value)
+  }
 
   @Test
   fun testLoadCQLHelperData() {
@@ -482,8 +503,8 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
 
   @Test
   fun testLoadCQLMeasurePatientData() {
-    var auxCQLPatientData = "auxCQLPatientData"
-    var patientData = MutableLiveData<String>()
+    val auxCQLPatientData = "auxCQLPatientData"
+    val patientData = MutableLiveData<String>()
     patientData.postValue(auxCQLPatientData)
 
     coroutinesTestRule.runBlockingTest {
@@ -496,22 +517,6 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
     Assert.assertEquals(auxCQLPatientData, patientData.value)
   }
 
-//  @Test
-//  fun loadMeasureEvaluatePatientDataTest() {
-//    var auxCQLPatientData = "auxCQLPatientData"
-//    var patientData = MutableLiveData<String>()
-//    patientData.postValue(auxCQLPatientData)
-//
-//    coroutinesTestRule.runBlockingTest {
-//      coEvery {
-//        patientDetailsViewModel.fetchCQLPatientData(parser, fhirResourceDataSource, any())
-//      } returns patientData
-//    }
-//    patientDetailsFragment.loadMeasureEvaluatePatient()
-//    Assert.assertNotNull(patientData.value)
-//    Assert.assertEquals(auxCQLPatientData, patientData.value)
-//  }
-//
   @Test
   fun showCQLCardTest() {
     val ANC_TEST_PATIENT_ID = "e8725b4c-6db0-4158-a24d-50a5ddf1c2ed"
@@ -531,14 +536,14 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
 
   @Test
   fun testButtonCQLSetOnClickListener() {
-    every { patientDetailsFragment.startProgressBarAndTextViewCQLResults() } returns Unit
+    every { patientDetailsFragment.parametersCQLToggleFinalView() } returns Unit
     patientDetailsFragment.buttonCQLSetOnClickListener()
     Assert.assertEquals(true, patientDetailsFragment.button_CQLEvaluate.hasOnClickListeners())
   }
 
   @Test
   fun testButtonCQLMeasureEvaluateSetOnClickListener() {
-    every { patientDetailsFragment.startProgressBarAndTextViewCQLResults() } returns Unit
+    every { patientDetailsFragment.parametersCQLMeasureToggleFinalView() } returns Unit
     patientDetailsFragment.buttonCQLMeasureEvaluateSetOnClickListener()
     Assert.assertEquals(
       true,
@@ -580,7 +585,7 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
 
   @Test
   fun testHandleParametersQCLMeasure() {
-    var dummyJson = "{ \"id\": 0, \"name\": \"Dominique Prince\" }"
+    val dummyJson = "{ \"id\": 0, \"name\": \"Dominique Prince\" }"
     val jsonObject = JSONObject(dummyJson)
     val auxText = jsonObject.toString(4)
 
@@ -589,16 +594,10 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
   }
 
   @Test
-  fun startProgressBarAndTextViewCQLResultsTest() {
-    patientDetailsFragment.startProgressBarAndTextViewCQLResults()
-    Assert.assertEquals(View.VISIBLE, patientDetailsFragment.progress_circular_cql?.visibility)
-  }
-
-  @Test
   fun testParametersQCLToggleFinalView() {
   every { patientDetailsFragment.handleCQL() } returns parameters
   every { patientDetailsFragment.handleParametersQCLMeasure(any()) } returns Unit
-    patientDetailsFragment.parametersCQLToggleFinalView(true)
+    patientDetailsFragment.parametersCQLToggleFinalView()
     Assert.assertEquals(true, patientDetailsFragment.button_CQL_Measure_Evaluate.isEnabled)
   }
 
@@ -606,12 +605,33 @@ internal class AncDetailsFragmentTest : FragmentRobolectricTest() {
   fun testParametersCQLMeasureToggleFinalView() {
     every { patientDetailsFragment.handleMeasureEvaluate() } returns parameters
     every { patientDetailsFragment.handleParametersQCLMeasure(any()) } returns Unit
-    patientDetailsFragment.parametersCQLMeasureToggleFinalView(true)
-    Assert.assertEquals(true, patientDetailsFragment.button_CQLEvaluate.isEnabled)
+    patientDetailsFragment.parametersCQLMeasureToggleFinalView()
+    Assert.assertEquals(false, patientDetailsFragment.button_CQLEvaluate.isEnabled)
   }
 
   @Test
   fun testHandleMeasureEvaluateLibrary(){
+    every { patientDetailsFragment.dir.exists() } returns true
+    every { patientDetailsFragment.fileUtil
+      .writeFileOnInternalStorage(any(),any(),any(),any()) } returns Unit
+    every { patientDetailsFragment.buttonCQLMeasureEvaluateStartSetOnClickListener() } returns Unit
+    every { patientDetailsFragment.measureReportingEditTextPeriodsSetOnClickListener() } returns Unit
+    every { patientDetailsFragment.toggleViewEndLoadCQLMeasureData() } returns Unit
+    patientDetailsFragment.handleMeasureEvaluateLibrary(valueSetData)
 
+    Assert.assertNotNull(patientDetailsFragment.libraryMeasure)
   }
+
+  @Test
+  fun testToggleViewStartLoadCQLMeasureData(){
+    patientDetailsFragment.toggleViewStartLoadCQLMeasureData()
+    Assert.assertEquals(false,patientDetailsFragment.button_CQLEvaluate.isEnabled)
+  }
+
+  @Test
+  fun testToggleViewEndLoadCQLMeasureData(){
+    patientDetailsFragment.toggleViewEndLoadCQLMeasureData()
+    Assert.assertEquals(true,patientDetailsFragment.button_CQLEvaluate.isEnabled)
+  }
+
 }
