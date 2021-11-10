@@ -132,11 +132,11 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
       if (savedInstanceState == null) {
         val fragment =
           FhirCoreQuestionnaireFragment().apply {
-            val parsedQuestionnaire = parser.encodeResourceToString(questionnaire)
+            val questionnaireString = parser.encodeResourceToString(questionnaire)
             arguments =
               when {
                 clientIdentifier == null -> {
-                  bundleOf(Pair(BUNDLE_KEY_QUESTIONNAIRE, parsedQuestionnaire)).apply {
+                  bundleOf(Pair(BUNDLE_KEY_QUESTIONNAIRE, questionnaireString)).apply {
                     val questionnaireResponse = intent.getStringExtra(QUESTIONNAIRE_RESPONSE)
                     if (readOnly && questionnaireResponse != null) {
                       putString(BUNDLE_KEY_QUESTIONNAIRE_RESPONSE, questionnaireResponse)
@@ -162,7 +162,7 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
                     Pair(BUNDLE_KEY_QUESTIONNAIRE_RESPONSE, parsedQuestionnaireResponse)
                   )
                 }
-                else -> bundleOf(Pair(BUNDLE_KEY_QUESTIONNAIRE, parsedQuestionnaire))
+                else -> bundleOf(Pair(BUNDLE_KEY_QUESTIONNAIRE, questionnaireString))
               }
           }
         supportFragmentManager.commit { add(R.id.container, fragment, QUESTIONNAIRE_FRAGMENT_TAG) }

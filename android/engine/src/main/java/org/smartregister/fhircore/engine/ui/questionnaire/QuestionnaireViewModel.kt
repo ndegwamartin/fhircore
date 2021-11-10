@@ -247,9 +247,10 @@ open class QuestionnaireViewModel(
               )
             }
           )
+        changeQuestionsToReadOnly(item.item, "$path.where(linkId = '${item.linkId}').answer.item")
+      } else {
+        changeQuestionsToReadOnly(item.item, "$path.where(linkId = '${item.linkId}').item")
       }
-
-      changeQuestionsToReadOnly(item.item, "$path.where(linkId = '${item.linkId}').item")
     }
   }
 }
