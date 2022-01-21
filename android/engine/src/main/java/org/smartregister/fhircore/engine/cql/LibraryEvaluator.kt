@@ -201,7 +201,7 @@ class LibraryEvaluator @Inject constructor() {
   suspend fun runCqlLibrary(
     libraryId: String,
     patient: Patient?,
-    resources: List<Resource>,
+    data: Bundle,
     // TODO refactor class by modular and single responsibility principle
     repository: DefaultRepository,
     outputLog: Boolean = false
@@ -222,7 +222,8 @@ class LibraryEvaluator @Inject constructor() {
       library,
       helpers,
       Bundle(),
-      createBundle(listOfNotNull(patient, *resources.toTypedArray()))
+      // TODO check and handle when data bundle has multiple Patient resources
+      createBundle(listOfNotNull(patient, *data.entry.map { it.resource }.toTypedArray()))
     )
 
     val result =

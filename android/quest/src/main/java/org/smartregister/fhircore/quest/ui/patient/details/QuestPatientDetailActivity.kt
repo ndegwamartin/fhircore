@@ -155,6 +155,8 @@ class QuestPatientDetailActivity :
       }
   }
 
+  // TODO https://github.com/opensrp/fhircore/issues/961
+  // allow handling the data back and forth between activities via workflow or config
   private fun launchQuestionnaireForm(questionnaireConfig: QuestionnaireConfig?) {
     if (questionnaireConfig != null) {
       startActivityForResult(
