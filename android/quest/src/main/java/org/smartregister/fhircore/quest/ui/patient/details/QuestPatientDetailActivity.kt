@@ -141,7 +141,7 @@ class QuestPatientDetailActivity :
       if (configurationRegistry.appId == "g6pd") {
         data?.getStringExtra(QUESTIONNAIRE_RESPONSE)?.let {
           val response =
-            FhirContext.forR4().newJsonParser().parseResource(it) as QuestionnaireResponse
+            FhirContext.forR4Cached().newJsonParser().parseResource(it) as QuestionnaireResponse
           // TODO replace with proper implementation
           if (data.getStringExtra(QUESTIONNAIRE_ARG_FORM)?.equals("14222") == false)
             response.contained.find { it.resourceType == ResourceType.Encounter }?.logicalId?.let {

@@ -72,10 +72,17 @@ class LibraryEvaluator @Inject constructor() {
   private var libEvaluator: LibraryEvaluator? = null
   private val bundleLinks = BundleLinks("", null, true, BundleTypeEnum.COLLECTION)
   val fhirTypeConverter = FhirTypeConverterFactory().create(fhirContext.version.version)
-  val cqlFhirParametersConverter by lazy {
-    CqlFhirParametersConverter(fhirContext, adapterFactory, fhirTypeConverter)
+  lateinit var cqlFhirParametersConverter: CqlFhirParametersConverter
+  lateinit var fhirModelResolver: R4FhirModelResolverExt
+
+  fun initialize() {
+    if (!this::cqlFhirParametersConverter.isInitialized)
+      cqlFhirParametersConverter =
+        CqlFhirParametersConverter(fhirContext, adapterFactory, fhirTypeConverter)
+
+    if (!this::fhirModelResolver.isInitialized) fhirModelResolver = R4FhirModelResolverExt()
   }
-  val fhirModelResolver by lazy { R4FhirModelResolverExt() }
+
   /**
    * This method loads configurations for CQL evaluation
    * @param libraryResources Fhir resource type Library
