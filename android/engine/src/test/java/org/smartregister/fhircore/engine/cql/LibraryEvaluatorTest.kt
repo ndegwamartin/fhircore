@@ -66,7 +66,7 @@ class LibraryEvaluatorTest {
       valueSetData = FileUtil.readJsonFile("test/resources/cql/libraryevaluator/valueSet.json")
       testData = FileUtil.readJsonFile("test/resources/cql/libraryevaluator/patient.json")
       result = FileUtil.readJsonFile("test/resources/cql/libraryevaluator/result.json")
-      evaluator = LibraryEvaluator()
+      evaluator = LibraryEvaluator().apply { this.initialize() }
     } catch (e: IOException) {
       Timber.e(e, e.message)
     }

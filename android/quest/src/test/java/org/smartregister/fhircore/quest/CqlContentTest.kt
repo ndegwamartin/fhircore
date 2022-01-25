@@ -40,7 +40,7 @@ import org.smartregister.fhircore.quest.robolectric.RobolectricTest
 class CqlContentTest : RobolectricTest() {
   val fhirContext = FhirContext.forCached(FhirVersionEnum.R4)
   val parser = fhirContext.newJsonParser()!!
-  val evaluator = LibraryEvaluator()
+  val evaluator = LibraryEvaluator().apply { this.initialize() }
 
   @Test
   fun runCqlLibraryTestForPqMedication() {
@@ -81,7 +81,8 @@ class CqlContentTest : RobolectricTest() {
         dataBundle.apply {
           this.entry.removeIf { it.resource.resourceType == ResourceType.Patient }
         },
-        defaultRepository
+        defaultRepository,
+        true
       )
     }
 

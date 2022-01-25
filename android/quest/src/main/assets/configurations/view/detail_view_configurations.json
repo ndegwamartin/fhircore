@@ -140,6 +140,26 @@
         "filters": [
           {
             "resourceType": "MEDICATIONREQUEST",
+            "key": "reasonCode",
+            "displayableProperty": "reasonCode",
+            "valueType": "CODEABLECONCEPT",
+            "label": "Findings: ",
+            "properties": {
+              "valueFormatter": {
+                "Minor": "Underage",
+                "missing": "Missing reason for recommendation"
+              },
+              "value": {
+                "textSize": 16
+              }
+            }
+          }
+        ]
+      },
+      {
+        "filters": [
+          {
+            "resourceType": "MEDICATIONREQUEST",
             "key": "category",
             "displayableProperty": "dosageInstruction.timing.repeat.period",
             "valueType": "CODEABLECONCEPT",

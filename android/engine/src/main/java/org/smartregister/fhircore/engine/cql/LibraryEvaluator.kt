@@ -230,7 +230,13 @@ class LibraryEvaluator @Inject constructor() {
       helpers,
       Bundle(),
       // TODO check and handle when data bundle has multiple Patient resources
-      createBundle(listOfNotNull(patient, *data.entry.map { it.resource }.toTypedArray()))
+      createBundle(
+        listOfNotNull(
+          patient,
+          *data.entry.map { it.resource }.toTypedArray(),
+          *repository.search(library.dataRequirementFirstRep).toTypedArray()
+        )
+      )
     )
 
     val result =
@@ -249,7 +255,8 @@ class LibraryEvaluator @Inject constructor() {
 
         when {
           outputLog -> "${p.name} -> ${getStringValue(it)}"
-          p.name.equals(OUTPUT_PARAMETER_KEY) && !it.isResource -> "-> ${getStringValue(it)}"
+          p.name.equals(OUTPUT_PARAMETER_KEY) && !it.isResource ->
+            "${p.name} -> ${getStringValue(it)}"
           else -> null
         }
       }
