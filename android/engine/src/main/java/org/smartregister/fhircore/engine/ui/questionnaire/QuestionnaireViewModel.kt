@@ -81,10 +81,6 @@ constructor(
   val libraryEvaluator: LibraryEvaluator
 ) : ViewModel() {
 
-  init {
-    viewModelScope.launch { libraryEvaluator.initialize() }
-  }
-
   private val authenticatedUserInfo by lazy {
     sharedPreferencesHelper.read(USER_INFO_SHARED_PREFERENCE_KEY, null)?.decodeJson<UserInfo>()
   }

@@ -37,6 +37,7 @@ import com.google.android.fhir.db.ResourceNotFoundException
 import com.google.android.fhir.logicalId
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -96,6 +97,8 @@ open class QuestionnaireActivity : BaseMultiLanguageActivity(), View.OnClickList
     }
 
     val loadProgress = showProgressAlert(this, R.string.loading)
+
+    lifecycleScope.launch { questionnaireViewModel.libraryEvaluator.initialize() }
 
     clientIdentifier = intent.getStringExtra(QUESTIONNAIRE_ARG_PATIENT_KEY)
     immunizationId = intent.getStringExtra(ADVERSE_EVENT_IMMUNIZATION_ITEM_KEY)
