@@ -82,6 +82,8 @@ constructor(
   val libraryEvaluator: LibraryEvaluator
 ) : ViewModel() {
 
+  private val EXTRACTED_REFERENCES_EXTENSION = "http://fhir.ona.com/fhir/StructureDefinition/questionnaire-response-extracted-references"
+
   private val authenticatedUserInfo by lazy {
     sharedPreferencesHelper.read(USER_INFO_SHARED_PREFERENCE_KEY, null)?.decodeJson<UserInfo>()
   }
@@ -173,6 +175,7 @@ constructor(
           }
 
           questionnaireResponse.contained.add(bun.resource)
+          questionnaireResponse.addResourceReferenceExtension(bun.resource)
         }
 
         if (questionnaire.experimental) {
@@ -219,6 +222,10 @@ constructor(
 
       viewModelScope.launch(Dispatchers.Main) { extractionProgress.postValue(true) }
     }
+  }
+
+  fun QuestionnaireResponse.addResourceReferenceExtension(resource: Resource){
+    this.addModifierExtension(Extension(EXTRACTED_REFERENCES_EXTENSION, resource.asReference()))
   }
 
   /**
@@ -307,7 +314,10 @@ constructor(
     viewModelScope.launch { defaultRepository.save(resource = resource) }
   }
 
-  open suspend fun getPopulationResources(intent: Intent): Array<Resource> {
+  open suspend fun getPopulationResources(
+    intent: Intent,
+    questionnaire: Questionnaire
+  ): Array<Resource> {
     val resourcesList = mutableListOf<Resource>()
 
     intent.getStringArrayListExtra(QuestionnaireActivity.QUESTIONNAIRE_POPULATION_RESOURCES)?.run {
@@ -332,6 +342,18 @@ constructor(
         resourcesList.add(this)
       }
       loadRelatedPerson(patientId)?.forEach { resourcesList.add(it) }
+
+      if (intent.questionnaireEditMode() &&
+          intent.questionnaireResponse().isNullOrBlank() &&
+          intent.populationResources().isNullOrEmpty()
+      ) {
+        defaultRepository.loadQuestionnaireResponses(patientId, questionnaire).lastOrNull()?.let {
+          it.contained.forEach {
+            Class.forName("org.hl7.fhir.r4.model.${it.resourceType}")
+            resourcesList.add(defaultRepository.fhirEngine.load(it::class.java, it.id))
+          }
+        }
+      }
     }
 
     return resourcesList.toTypedArray()
@@ -341,7 +363,9 @@ constructor(
     questionnaire: Questionnaire,
     intent: Intent
   ): QuestionnaireResponse {
-    return ResourceMapper.populate(questionnaire, *getPopulationResources(intent))
+    return kotlin.runCatching {
+      ResourceMapper.populate(questionnaire, *getPopulationResources(intent, questionnaire))
+      }.onFailure { Timber.e(it) }.getOrThrow()
   }
 
   fun getAgeInput(questionnaireResponse: QuestionnaireResponse): Int? {
