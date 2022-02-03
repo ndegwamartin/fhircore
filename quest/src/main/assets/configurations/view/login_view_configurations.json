@@ -1,0 +1,18 @@
+[
+  {
+    "appId": "quest",
+    "classification": "login",
+    "applicationName": "Quest",
+    "applicationVersion": "0.0.2",
+    "darkMode": false,
+    "showLogo": false
+  },
+  {
+    "appId": "g6pd",
+    "classification": "login",
+    "applicationName": "G6PD Test Reader",
+    "applicationVersion": "0.0.1",
+    "darkMode": false,
+    "showLogo": true
+  }
+]

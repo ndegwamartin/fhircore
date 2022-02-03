@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name" translatable="false">Quest</string>
+    <string name="authenticator_account_type" translatable="false">org.smartregister.fhircore.quest</string>
+
+    <string name="back_to_clients">Back to client list</string>
+    <string name="test_results">Test Results</string>
+
+    <string name="edit_patient_info">Edit Info</string>
+
+    <string name="menu_clients">Clients</string>
+    <string name="menu_settings">Settings</string>
+    <string name="cannot_find_parent_questionnaire">Cannot find the parent Questionnaire!</string>
+
+    <string name="loading_forms">Loading forms ...</string>
+    <string name="loading_responses">Loading responses ...</string>
+    <string name="no_test_results_found">No test results found</string>
+    <string name="patient_test_results">TEST RESULTS</string>
+
+</resources>

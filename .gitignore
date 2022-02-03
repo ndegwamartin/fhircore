@@ -1,0 +1,19 @@
+.DS_Store
+/build
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log Files
+*.log
+
+# IntelliJ
+*.iml
+.idea
+
+# Gradle Properties
+gradle.properties
