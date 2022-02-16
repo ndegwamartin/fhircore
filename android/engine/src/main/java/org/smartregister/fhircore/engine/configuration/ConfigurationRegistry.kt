@@ -44,7 +44,7 @@ constructor(
 
   val configurationsMap = mutableMapOf<String, Configuration>()
 
-  val workflowPointsMap = mutableMapOf<String, WorkflowPoint>()
+  val workflowPointsMap = mutableMapOf<String, WorkflowPointConfiguration>()
 
   val authConfiguration by lazy { configService.provideAuthConfiguration() }
 

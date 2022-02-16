@@ -22,11 +22,11 @@ import kotlinx.serialization.Serializable
 data class ApplicationWorkflow(
   val appId: String,
   val title: String,
-  val mapping: List<WorkflowPoint>
+  val mapping: List<WorkflowPointConfiguration>
 )
 
 @Serializable
-data class WorkflowPoint(
+data class WorkflowPointConfiguration(
   val workflowPoint: String,
   val resource: String,
   val classification: String,

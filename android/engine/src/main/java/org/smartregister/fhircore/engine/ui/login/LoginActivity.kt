@@ -30,10 +30,11 @@ import org.smartregister.fhircore.engine.configuration.view.LoginViewConfigurati
 import org.smartregister.fhircore.engine.ui.base.BaseMultiLanguageActivity
 import org.smartregister.fhircore.engine.ui.theme.AppTheme
 import org.smartregister.fhircore.engine.util.FORCE_LOGIN_VIA_USERNAME
+import org.smartregister.fhircore.engine.workflow.WorkflowPoint
 
 @AndroidEntryPoint
 class LoginActivity :
-  BaseMultiLanguageActivity(), ConfigurableComposableView<LoginViewConfiguration> {
+  BaseMultiLanguageActivity(), ConfigurableComposableView<LoginViewConfiguration>, WorkflowPoint {
 
   @Inject lateinit var loginService: LoginService
 
