@@ -55,7 +55,7 @@ android {
         versionName "0.0.4"
         multiDexEnabled true
 
-        testInstrumentationRunner "org.smartregister.fhircore.anc.ui.AncTestRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // This command ensures that the app's state is completely cleared between tests
         testInstrumentationRunnerArguments 'clearPackageData': 'true', 'package': 'org.smartregister.fhircore.anc'
 
@@ -142,6 +142,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+    androidTestImplementation 'androidx.test:rules:1.4.0'
+    androidTestImplementation 'androidx.test:runner:1.4.0'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     implementation deps.lifecycle.viewmodel
     implementation deps.work.runtime

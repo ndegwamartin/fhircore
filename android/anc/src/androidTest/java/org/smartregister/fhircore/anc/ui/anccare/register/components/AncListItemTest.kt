@@ -21,10 +21,12 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.util.Date
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.smartregister.fhircore.anc.data.model.PatientItem
 import org.smartregister.fhircore.anc.data.model.VisitStatus
 import org.smartregister.fhircore.anc.ui.anccare.register.AncRowClickListenerIntent
@@ -33,6 +35,7 @@ import org.smartregister.fhircore.anc.ui.anccare.register.RecordAncVisit
 import org.smartregister.fhircore.anc.ui.report.PATIENT_ANC_VISIT
 import org.smartregister.fhircore.engine.util.extension.toAgeDisplay
 
+@RunWith(AndroidJUnit4::class)
 class AncListItemTest {
 
   @get:Rule val composeRule = createComposeRule()
