@@ -28,3 +28,4 @@ if (rootProject.file("keystore.properties").exists()) {
     keystoreAuthArray.each { arrayProp ->
         project.ext.set(arrayProp, props.getProperty(arrayProp, "sample_" + arrayProp))
     }
+}
