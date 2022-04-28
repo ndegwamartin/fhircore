@@ -36,6 +36,14 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
+
+      - id: product-flavor
+        name: Generate Product flavor identifier
+        run: |
+          id=$(echo ${{github.event.client_payload.value}} | cut -d- -f2)
+          echo "::set-output name=id::$id"
+          idCapitalized=$(echo ${{github.event.client_payload.value}} | cut -d- -f2 | sed 's/.*/\u&/')
+          echo "::set-output name=idCapitalized::$idCapitalized"
           
       - name: Decode and Generate Keystore file
         run: echo $ENCODED_KEYSTORE | base64 -di > "${HOME}"/fhircore.keystore.jks
@@ -74,7 +82,7 @@ jobs:
 
       - name: Generate AAB (Android App Bundle) file
         if: ${{ false }}
-        run: ./gradlew :quest:bundleRelease -x :quest:testDebugUnitTest --stacktrace
+        run: ./gradlew :quest:bundle${{steps.product-flavor.outputs.idCapitalized}} -x :quest:test${{steps.product-flavor.outputs.idCapitalized}}DebugUnitTest --stacktrace
         working-directory: android
         
       - name: Upload AAB file to tag assets
@@ -82,21 +90,21 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: android/quest/build/outputs/bundle/release/quest-release.aab
-          asset_name: "quest-$tag.aab"
+          file: android/quest/build/outputs/bundle/${{steps.product-flavor.outputs.id}}/release/quest-${{steps.product-flavor.outputs.id}}-release.aab
+          asset_name: "quest-${{steps.product-flavor.outputs.id}}-$tag.aab"
           tag: ${{ github.ref }}
           overwrite: true
       
       - name: Generate APK (Android App PacKage) file
-        run: ./gradlew :quest:assembleRelease -x :quest:testDebugUnitTest --stacktrace
+        run: ./gradlew :quest:assemble${{steps.product-flavor.outputs.idCapitalized}} -x :quest:test${{steps.product-flavor.outputs.idCapitalized}}DebugUnitTest --stacktrace
         working-directory: android
         
       - name: Upload APK file to tag assets
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: android/quest/build/outputs/apk/release/quest-release.apk
-          asset_name: "quest-$tag.apk"
+          file: android/quest/build/outputs/apk/${{steps.product-flavor.outputs.id}}/release/quest-${{steps.product-flavor.outputs.id}}-release.apk
+          asset_name: "quest-${{steps.product-flavor.outputs.id}}-$tag.apk"
           tag: ${{ github.ref }}
           prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') }}
           overwrite: true
