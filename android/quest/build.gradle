@@ -8,6 +8,7 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'jacoco'
     id 'dagger.hilt.android.plugin'
+    id "org.sonarqube" version "3.5.0.2730"
 }
 
 apply from: '../jacoco.gradle'
